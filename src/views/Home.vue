@@ -106,6 +106,7 @@ let codeList = ref([]);
 function codeClick(item,index){
   activeCode.value = item;
   codeIndex.value = index;
+  handleGetCode(activeCode.value._id)
 }
 
 let activeCode = ref({
@@ -303,10 +304,10 @@ watch(folderIndex, (newVal, oldVal) => {
   codeIndex.value = 0;
   handleGetCodeList()
 })
-watch(codeIndex, (newVal, oldVal) => { 
-  // console.log(newVal)
-  handleGetCode(activeCode.value._id)
-})
+// watch(codeIndex, (newVal, oldVal) => { 
+//   // console.log(newVal)
+//   handleGetCode(activeCode.value._id)
+// })
 
 let keyword = ref('');
 async function seachCode(){
