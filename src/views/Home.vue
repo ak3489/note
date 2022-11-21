@@ -53,7 +53,8 @@ const getUserInfo = async () => {
     accessToken: state.loginState.accessToken,
   });
   // console.log('userInfo',userInfo);
-  addFolderForm.value.userId=userInfo.userId
+  addFolderForm.value.userId=userInfo.userId;
+  addCodeForm.value.userId=userInfo.userId
   state.userInfo = userInfo;
   handleGetFolders()
 };
@@ -309,7 +310,8 @@ watch(codeIndex, (newVal, oldVal) => {
 
 let keyword = ref('');
 async function seachCode(){
-  let {code,data,msg} = await seachCodeApi(folderList.value[folderIndex.value]._id,keyword.value);
+  let userId = state.userInfo?.userId;
+  let {code,data,msg} = await seachCodeApi(userId,keyword.value);
   codeList.value = data
 }
 watch(keyword, (newVal, oldVal) => { 

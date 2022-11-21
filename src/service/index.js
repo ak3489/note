@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-17 15:48:03
  * @LastEditors: gcz
- * @LastEditTime: 2022-11-21 15:27:44
+ * @LastEditTime: 2022-11-21 17:06:55
  * @FilePath: \codeHome\src\service\index.js
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
  */
@@ -20,8 +20,8 @@ export function getFolders(userId) {
 export function getCodeList(folderId,pageNo,pageSize) {
   return axios.get(`/code/getCodeList?folderId=${folderId}&pageNo=${pageNo}&pageSize=${pageSize}`);
 }
-export function seachCodeApi(folderId,keyword) {
-  return axios.get(`/code/seachCode?folderId=${folderId}&keyword=${keyword}`);
+export function seachCodeApi(userId, keyword) {
+  return axios.get(`/code/seachCode?userId=${userId}&keyword=${keyword}`);
 }
 export function getCode(codeId) {
   return axios.get(`/code/getCode?codeId=${codeId}`);
