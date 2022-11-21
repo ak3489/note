@@ -10,7 +10,8 @@ const sdk = new Authing({
   appId: '6376fb5d2d8111d6673ed0fc',
   // 登录回调地址，需要在控制台『应用配置 - 登录回调 URL』中指定
   // redirectUri: 'http://127.0.0.1:5173',
-  redirectUri: 'https://note.momen.vip',
+  // redirectUri: 'https://note.momen.vip',
+  redirectUri: process.env.NODE_ENV == 'development' ? 'http://127.0.0.1:5173' : 'https://note.momen.vip',
   userPoolId:'6376fb022996db9f5c2396ba',//用户池id
 });
 const state = reactive({
@@ -51,7 +52,7 @@ const getUserInfo = async () => {
   const userInfo = await sdk.getUserInfo({
     accessToken: state.loginState.accessToken,
   });
-  console.log('userInfo',userInfo);
+  // console.log('userInfo',userInfo);
   addFolderForm.value.userId=userInfo.userId
   state.userInfo = userInfo;
   handleGetFolders()
@@ -167,7 +168,7 @@ let queryParams = ref({
 })
 let total = reactive(1)
 async function handleGetCodeList(){
-  let folderId = folderList.value[folderIndex.value]._id;
+  let folderId = folderList.value[folderIndex.value]?._id;
   // console.log('folderId',folderId);
   let {code,data,totalCount,msg} = await getCodeList(folderId,queryParams.value.pageNo,queryParams.value.pageSize);
   codeList.value = data;
@@ -332,7 +333,7 @@ watch(keyword, (newVal, oldVal) => {
              <span @click="editFolder(item)" class="edit">编辑</span>
           </li>
         </ul>
-        <div v-else class="">还没有文件夹,请先新增</div>
+        <div v-else class="tip">还没有文件夹,请先新增</div>
     </section> 
     <!-- folders 结束 -->
     <section class="info">
@@ -416,6 +417,11 @@ watch(keyword, (newVal, oldVal) => {
 
 <style lang="scss" scoped>
 .parent {
+  .tip{
+        text-align: center;
+        color: #65698b;
+        padding-top: 24px;
+      }
     color: #fff;
     box-sizing: border-box;
     display: grid;
@@ -468,11 +474,6 @@ watch(keyword, (newVal, oldVal) => {
       }
     }
     .list{
-      .tip{
-        text-align: center;
-        color: #65698b;
-        padding-top: 24px;
-      }
         grid-area: 1 / 2 / 3 / 3;
         border-left: 1px solid #37394a;
         border-right: 1px solid #37394a;
