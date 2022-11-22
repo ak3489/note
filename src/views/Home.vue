@@ -98,6 +98,7 @@ function closeHandle(){
 let folderIndex = ref(0);
 let folderList = ref([]);
 function folderClick(item,index){
+  queryParams.value.pageNo = 1;
   folderIndex.value = index
 }
 
