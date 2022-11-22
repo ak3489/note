@@ -317,7 +317,12 @@ async function seachCode(){
 }
 watch(keyword, (newVal, oldVal) => { 
   console.log('keyword',newVal)
-  debounce(seachCode(), 500, false);
+  if(keyword.value.length>0){
+    debounce(seachCode(), 500, false);
+  }else{
+    handleGetCodeList()
+  }
+  
 })
 
 
@@ -441,6 +446,7 @@ watch(keyword, (newVal, oldVal) => {
           height: 30px;
           line-height: 30px;
           text-align: center;
+          font-size: 30px;
           cursor: pointer;
           &:hover{
             background: #ddd;
@@ -499,6 +505,7 @@ watch(keyword, (newVal, oldVal) => {
           text-align: center;
           line-height: 45px;
           cursor: pointer;
+          font-size: 30px;
           &:hover{
             background: #ddd;
           }
