@@ -166,7 +166,7 @@ async function handleGetFolders(){
 }
 let queryParams = ref({
   pageNo: 1,
-  pageSize: 10,
+  pageSize: 20,
 })
 let total = reactive(1)
 async function handleGetCodeList(){
@@ -461,6 +461,7 @@ watch(keyword, (newVal, oldVal) => {
               display: none;
             }
             &:hover{
+              background-color: #2a2d53;
               .edit{
                 display: block;
               }
@@ -483,6 +484,7 @@ watch(keyword, (newVal, oldVal) => {
       }
     }
     .list{
+        position: relative;
         grid-area: 1 / 2 / 3 / 3;
         border-left: 1px solid #37394a;
         border-right: 1px solid #37394a;
@@ -522,6 +524,7 @@ watch(keyword, (newVal, oldVal) => {
               display: none;
             }
             &:hover{
+              background-color: #2a2d53;
               .del{
                 display: block;
               }
@@ -530,6 +533,14 @@ watch(keyword, (newVal, oldVal) => {
               background-color: #363748;
             }
           }
+      }
+      .pagination-box{
+        position: absolute;
+        left: 10px;
+        bottom: 0;
+        :deep(button) {
+          padding: 0;
+        }
       }
     }
     .code{
