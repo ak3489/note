@@ -548,6 +548,9 @@ watch(keyword, (newVal, oldVal) => {
         .mavonEditor{
           height: 100%;
         }
+        :deep(.hljs){
+          white-space: break-spaces;
+        }
     }
 }
 </style>
