@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-17 15:48:03
  * @LastEditors: gcz
- * @LastEditTime: 2022-11-21 17:06:55
+ * @LastEditTime: 2022-11-23 09:26:59
  * @FilePath: \codeHome\src\service\index.js
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
  */
@@ -23,8 +23,8 @@ export function getCodeList(folderId,pageNo,pageSize) {
 export function seachCodeApi(userId, keyword) {
   return axios.get(`/code/seachCode?userId=${userId}&keyword=${keyword}`);
 }
-export function getCode(codeId) {
-  return axios.get(`/code/getCode?codeId=${codeId}`);
+export function getCode(codeId, isClick) {
+  return axios.get(`/code/getCode?codeId=${codeId}&isClick=${isClick}`);
 }
 
 export function addFolderApi(params) {

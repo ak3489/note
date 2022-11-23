@@ -107,7 +107,7 @@ let codeList = ref([]);
 function codeClick(item,index){
   activeCode.value = item;
   codeIndex.value = index;
-  handleGetCode(activeCode.value._id)
+  handleGetCode(activeCode.value._id,'click')
 }
 
 let activeCode = ref({
@@ -190,8 +190,8 @@ function changePage($event){
   handleGetCodeList()
 }
 
-async function handleGetCode(codeId){
-  let {code,data,msg} = await getCode(codeId);
+async function handleGetCode(codeId,isClick){
+  let {code,data,msg} = await getCode(codeId,isClick);
   activeCode.value = data
 }
 
