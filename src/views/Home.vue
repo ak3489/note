@@ -161,6 +161,10 @@ async function saveCode(){
 
 async function handleGetFolders(){
   let userId = state.userInfo?.userId;
+  console.log('showLoading.value',showLoading.value);
+  // setTimeout(()=>{
+    showLoading.value = true
+  // },100)
   let {code,data,msg} = await getFolders(userId);
   folderList.value = data;
   handleGetCodeList()
@@ -169,13 +173,14 @@ let queryParams = ref({
   pageNo: 1,
   pageSize: 20,
 })
-let total = reactive(1)
+let total = ref(1)
 async function handleGetCodeList(){
   let folderId = folderList.value[folderIndex.value]?._id;
   // console.log('folderId',folderId);
   let {code,data,totalCount,msg} = await getCodeList(folderId,queryParams.value.pageNo,queryParams.value.pageSize);
   codeList.value = data;
-  total = totalCount
+  total.value = totalCount;
+  showLoading.value = false;
   activeCode.value = {};
   if(data.length>0){
     let codeId = data[0]._id;
@@ -326,6 +331,7 @@ watch(keyword, (newVal, oldVal) => {
   
 })
 
+let showLoading = ref(false)
 
 </script>
 
@@ -420,6 +426,14 @@ watch(keyword, (newVal, oldVal) => {
       <span style="margin-right:8px">确认删除笔记？</span>
     </div>
   </s3-layer>
+
+  <div v-if="showLoading" class="loading u-flex">
+    <div class="spinner-box">
+      <div class="circle-border">
+        <div class="circle-core"></div>
+      </div>  
+    </div>
+  </div>
 
   </div>
 </template>
@@ -553,5 +567,50 @@ watch(keyword, (newVal, oldVal) => {
           white-space: break-spaces;
         }
     }
+}
+@keyframes spin {
+  from {
+    transform: rotate(0);
+  }
+  to{
+    transform: rotate(359deg);
+  }
+}
+.loading{
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom:0;
+  top: 0;
+  background-color: rgba(0,0,0,.5);
+  z-index: 100011;
+  justify-content: center;
+  .spinner-box {
+    width: 300px;
+    height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+    .circle-border {
+      width: 150px;
+      height: 150px;
+      padding: 3px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      background: rgb(63,249,220);
+      background: linear-gradient(0deg, rgba(63,249,220,0.1) 33%, rgba(63,249,220,1) 100%);
+      animation: spin .8s linear 0s infinite;
+    }
+
+    .circle-core {
+      width: 100%;
+      height: 100%;
+      background-color: #1d2630;
+      border-radius: 50%;
+    }
+  }
 }
 </style>
