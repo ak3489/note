@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-17 10:50:15
  * @LastEditors: gcz
- * @LastEditTime: 2022-11-18 14:04:36
+ * @LastEditTime: 2022-11-23 17:06:41
  * @FilePath: \codeHome\src\router\index.js
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
  */
@@ -20,6 +20,14 @@
        path: '/home',
        name: 'home',
        component: () => import(/* webpackChunkName: "home" */ '@/views/Home.vue'),
+       meta: {
+         index: 1
+       }
+     },
+     {
+       path: '/share',
+       name: 'share',
+       component: () => import(/* webpackChunkName: "login" */ '@/views/Share.vue'),
        meta: {
          index: 1
        }

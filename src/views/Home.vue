@@ -161,7 +161,7 @@ async function saveCode(){
 
 async function handleGetFolders(){
   let userId = state.userInfo?.userId;
-  console.log('showLoading.value',showLoading.value);
+  // console.log('showLoading.value',showLoading.value);
   // setTimeout(()=>{
     showLoading.value = true
   // },100)
@@ -310,10 +310,12 @@ watch(folderIndex, (newVal, oldVal) => {
   codeIndex.value = 0;
   handleGetCodeList()
 })
+
 // watch(codeIndex, (newVal, oldVal) => { 
-//   // console.log(newVal)
-//   handleGetCode(activeCode.value._id)
-// })
+//   console.log('codeIndex',newVal)
+//   console.log('',codeList.value[newVal]);
+//   // handleGetCode(activeCode.value._id)
+// },{immediate:true})
 
 let keyword = ref('');
 async function seachCode(){
@@ -331,7 +333,16 @@ watch(keyword, (newVal, oldVal) => {
   
 })
 
-let showLoading = ref(false)
+let showLoading = ref(false);
+
+function share(){
+  console.log('window.location.host',window.location.host);
+  console.log('activeCode.value._id',activeCode.value._id);
+  let url = `https://${window.location.host}/share?shareId=${activeCode.value._id}`
+  navigator.clipboard.writeText(url).then(()=>{
+    layer.msg('复制成功,去分享吧!')
+  });
+}
 
 </script>
 
@@ -434,6 +445,8 @@ let showLoading = ref(false)
       </div>  
     </div>
   </div>
+
+  <button class="share-btn" v-if="activeCode._id" @click="share">分享</button>
 
   </div>
 </template>
@@ -612,5 +625,15 @@ let showLoading = ref(false)
       border-radius: 50%;
     }
   }
+}
+.share-btn{
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 100011;
+  background-color: #2a2d53;
+  outline: 0;
+  border: 0;
+  color: #fff;
 }
 </style>
