@@ -338,7 +338,7 @@ let showLoading = ref(false);
 function share(){
   console.log('window.location.host',window.location.host);
   console.log('activeCode.value._id',activeCode.value._id);
-  let url = `https://${window.location.host}/share?shareId=${activeCode.value._id}`
+  let url = `${activeCode.value.noteTitle} https://${window.location.host}/share?shareId=${activeCode.value._id}`
   navigator.clipboard.writeText(url).then(()=>{
     layer.msg('复制成功,去分享吧!')
   });
