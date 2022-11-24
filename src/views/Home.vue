@@ -446,7 +446,7 @@ function share(){
     </div>
   </div>
 
-  <button class="share-btn" v-if="activeCode._id" @click="share">分享</button>
+  <button class="bottom-btn" v-if="activeCode._id" @click="share">分享</button>
 
   </div>
 </template>
@@ -465,7 +465,7 @@ function share(){
     grid-template-rows: 360px 1fr;
     grid-column-gap: 0px;
     grid-row-gap: 0px;
-    background-color: #292a36;
+    background-color: var(--bg-color);
     .folders{
         padding: 10px;
         overflow-y: auto;
@@ -514,10 +514,10 @@ function share(){
     .list{
         position: relative;
         grid-area: 1 / 2 / 3 / 3;
-        border-left: 1px solid #37394a;
-        border-right: 1px solid #37394a;
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
       .top{
-        border-bottom: 1px solid #37394a;
+        border-bottom: 1px solid var(--border-color);
         .input{
           background: transparent;
           outline: 0;
@@ -626,14 +626,5 @@ function share(){
     }
   }
 }
-.share-btn{
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 100011;
-  background-color: #2a2d53;
-  outline: 0;
-  border: 0;
-  color: #fff;
-}
+
 </style>

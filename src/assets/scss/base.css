@@ -1,4 +1,6 @@
 :root {
+  --bg-color: #292a36;
+  --border-color: #37394a;
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 24px;
@@ -67,6 +69,17 @@ input{
 
 .layui-layer.layui-layer-dialog{
   border-radius: 5px;
+}
+
+.bottom-btn{
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 100011;
+  background-color: #2a2d53;
+  outline: 0;
+  border: 0;
+  color: #fff;
 }
 
 @media (prefers-color-scheme: light) {

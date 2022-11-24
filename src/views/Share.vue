@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-23 17:05:56
  * @LastEditors: gcz
- * @LastEditTime: 2022-11-23 17:27:41
+ * @LastEditTime: 2022-11-24 09:39:07
  * @FilePath: \codeHome\src\views\Share.vue
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
 -->
@@ -12,6 +12,7 @@
         <section class="code">
             <mavon-editor class="mavonEditor" v-model="activeCode.noteContent" :toolbars="toolbars" />
         </section>
+        <button class="bottom-btn" @click="$router.push({path:'/'})">返回首页</button>
     </div>
 </template>
 
