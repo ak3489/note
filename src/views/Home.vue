@@ -179,6 +179,7 @@ async function handleGetCodeList(){
   // console.log('folderId',folderId);
   let {code,data,totalCount,msg} = await getCodeList(folderId,queryParams.value.pageNo,queryParams.value.pageSize);
   codeList.value = data;
+  codeIndex.value = 0;
   total.value = totalCount;
   showLoading.value = false;
   activeCode.value = {};
@@ -307,7 +308,7 @@ onMounted(async () => {
 
 watch(folderIndex, (newVal, oldVal) => { 
   // console.log(newVal)
-  codeIndex.value = 0;
+  // codeIndex.value = 0;
   handleGetCodeList()
 })
 
