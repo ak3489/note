@@ -63,7 +63,7 @@ const getUserInfo = async () => {
  * 登出
  */
   const logout = () => {
-  sdk.logoutWithRedirect();
+  sdk.logoutWithRedirect({redirectUri: process.env.NODE_ENV == 'development' ? 'http://127.0.0.1:5173/unlogin' : 'https://note.momen.vip/unlogin'});
 };
 
 const instance = getCurrentInstance()

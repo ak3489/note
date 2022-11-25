@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-17 10:50:15
  * @LastEditors: gcz
- * @LastEditTime: 2022-11-23 17:06:41
+ * @LastEditTime: 2022-11-25 10:52:36
  * @FilePath: \codeHome\src\router\index.js
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
  */
@@ -36,6 +36,14 @@
        path: '/login',
        name: 'login',
        component: () => import(/* webpackChunkName: "login" */ '@/views/Login.vue'),
+       meta: {
+         index: 1
+       }
+     },
+     {
+       path: '/unlogin',
+       name: 'unlogin',
+       component: () => import(/* webpackChunkName: "login" */ '@/views/unLogin.vue'),
        meta: {
          index: 1
        }
