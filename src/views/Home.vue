@@ -395,7 +395,7 @@ function share(){
     </section>
     <!-- 列表 结束 -->
     <section class="code">
-      <mavon-editor class="mavonEditor" v-model="activeCode.noteContent" @save="saveCode" :toolbars="toolbars" />
+      <mavon-editor class="mavonEditor" v-model="activeCode.noteContent" @save="saveCode" :toolbars="toolbars" :html="true" codeStyle="atom-one-dark" />
     </section>
 
     <s3-layer
@@ -627,5 +627,15 @@ function share(){
     }
   }
 }
-
+@media screen and (max-width: 1200px) {
+  .parent{
+    display: block;
+  }
+  .list{
+    padding-bottom: 24px;
+  }
+  .info{
+    display: none;
+  }
+}
 </style>

@@ -3,14 +3,24 @@
  * @Author: gcz
  * @Date: 2022-11-25 09:53:39
  * @LastEditors: gcz
- * @LastEditTime: 2022-11-25 10:43:10
+ * @LastEditTime: 2022-11-30 16:39:02
  * @FilePath: \codeHome\src\views\unLogin.vue
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
 -->
 <template>
     <div class=''>
         <section class="code">
-            <mavon-editor class="mavonEditor" v-model="activeCode.noteContent" :toolbars="toolbars" />
+            <mavon-editor 
+                class="mavonEditor" 
+                v-model="activeCode.noteContent" 
+                :toolbars="toolbars" 
+                :subfield="false" 
+                defaultOpen="preview"
+                :editable="true"
+                :toolbarsFlag="true"
+                :html="false"
+                codeStyle="atom-one-dark"
+             />
         </section>
         <button class="bottom-btn" @click="$router.push({path:'/home'})">登录</button>
     </div>
