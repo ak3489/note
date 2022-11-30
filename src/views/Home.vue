@@ -384,7 +384,7 @@ function share(){
       </div>
       <ul v-if="codeList.length>0" class="code-list">
         <li v-for="(item,index) in codeList" class="code-title u-flex u-row-between" :class="index==codeIndex?'active':''" :key="item.id">
-            <span  @click="codeClick(item,index)" class="u-flex-1">{{ item.noteTitle }}</span>
+            <span  @click="codeClick(item,index)" class="u-flex-1 ellipsis">{{ item.noteTitle }}</span>
             <span class="del" @click="delCode(item._id)">删除</span>
         </li>
       </ul>
@@ -630,12 +630,27 @@ function share(){
 @media screen and (max-width: 1200px) {
   .parent{
     display: block;
+    .list{
+      padding-bottom: 24px;
+      .code-list{
+        overflow: hidden;
+        .code-title{
+          width: 50%;
+          box-sizing: border-box;
+          float: left;
+        }
+      }
+      .pagination-box{
+        bottom: 10px;
+      }
+    }
+
+    .info{
+      display: none;
+    }
+
   }
-  .list{
-    padding-bottom: 24px;
-  }
-  .info{
-    display: none;
-  }
+  
+  
 }
 </style>
