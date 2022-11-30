@@ -283,6 +283,11 @@ async function confirmDelCode(){
 }
 
 onMounted(async () => {
+    let clientWidth = document.documentElement.clientWidth;
+    if(clientWidth<1200){
+      subfield.value = false
+      defaultOpen.value = 'edit'
+    }
    // 校验当前 url 是否是登录回调地址
    if (sdk.isRedirectCallback()) {
     console.log("redirect");
@@ -345,6 +350,10 @@ function share(){
   });
 }
 
+// 编辑器
+let subfield = ref(true);
+let defaultOpen = ref('preview');
+
 </script>
 
 <template>
@@ -395,7 +404,16 @@ function share(){
     </section>
     <!-- 列表 结束 -->
     <section class="code">
-      <mavon-editor class="mavonEditor" v-model="activeCode.noteContent" @save="saveCode" :toolbars="toolbars" :html="true" codeStyle="atom-one-dark" />
+      <mavon-editor 
+        class="mavonEditor" 
+        v-model="activeCode.noteContent" 
+        @save="saveCode" 
+        :toolbars="toolbars" 
+        :html="true" 
+        codeStyle="atom-one-dark"
+        :subfield="subfield"
+        :defaultOpen="defaultOpen"
+       />
     </section>
 
     <s3-layer
