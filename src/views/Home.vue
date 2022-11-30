@@ -355,8 +355,8 @@ function share(){
             <span class="add-folder" @click="addFolder">+</span>
         </div>
         <ul v-if="folderList.length>0" class="folder-list">
-          <li v-for="(item,index) in folderList" @click="folderClick(item,index)" class="folder u-flex u-row-between" :class="index==folderIndex?'active':''" :key="item._id">
-             <span class="u-flex-1">{{ item.folderName }}</span>
+          <li v-for="(item,index) in folderList" class="folder u-flex u-row-between" :class="index==folderIndex?'active':''" :key="item._id">
+             <span @click="folderClick(item,index)" class="u-flex-1">{{ item.folderName }}</span>
              <span @click="editFolder(item)" class="edit">编辑</span>
           </li>
         </ul>
