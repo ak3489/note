@@ -3,14 +3,20 @@
  * @Author: gcz
  * @Date: 2022-11-23 17:05:56
  * @LastEditors: gcz
- * @LastEditTime: 2022-11-24 09:39:07
+ * @LastEditTime: 2022-12-01 10:43:53
  * @FilePath: \codeHome\src\views\Share.vue
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
 -->
 <template>
     <div class=''>
         <section class="code">
-            <mavon-editor class="mavonEditor" v-model="activeCode.noteContent" :toolbars="toolbars" />
+            <mavon-editor 
+                class="mavonEditor" 
+                v-model="activeCode.noteContent" 
+                :toolbars="toolbars"
+                :html="false"
+                codeStyle="atom-one-dark"
+            />
         </section>
         <button class="bottom-btn" @click="$router.push({path:'/'})">返回首页</button>
     </div>
