@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-23 17:05:56
  * @LastEditors: gcz
- * @LastEditTime: 2022-12-01 10:43:53
+ * @LastEditTime: 2022-12-01 16:19:31
  * @FilePath: \codeHome\src\views\Share.vue
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
 -->
@@ -78,7 +78,12 @@ import { getShareCode } from '@/service/index';
         methods: {
             async getShareCode(shareId){
                 let {code,data,msg} = await getShareCode(shareId);
-                this.activeCode = data
+                if(data){
+                    this.activeCode = data
+                }else{
+                    this.$router.push({path:'/'})
+                }
+                
             }
         },
     }

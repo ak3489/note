@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-17 10:50:15
  * @LastEditors: gcz
- * @LastEditTime: 2022-11-25 10:52:36
+ * @LastEditTime: 2022-12-01 16:42:22
  * @FilePath: \codeHome\src\router\index.js
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
  */
@@ -47,6 +47,10 @@
        meta: {
          index: 1
        }
+     },
+     {
+       path: '/:pathMatch(.*)',
+       redirect: '/unlogin',
      },
    ]
  })
