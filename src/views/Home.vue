@@ -487,7 +487,7 @@ function onContextMenu(item,e) {
   >
     <div>
       <span style="margin-right:8px">文件夹名称</span>
-      <input type="text" v-model="addFolderForm.folderName" placeholder="文件夹名称">
+      <input type="text" v-model="addFolderForm.folderName" maxlength="10" placeholder="文件夹名称">
     </div>
   </s3-layer>
 
@@ -501,7 +501,7 @@ function onContextMenu(item,e) {
   >
     <div>
       <span style="margin-right:8px">笔记标题</span>
-      <input type="text" v-model="addCodeForm.noteTitle" placeholder="笔记标题">
+      <input type="text" v-model="addCodeForm.noteTitle" maxlength="20" placeholder="笔记标题">
     </div>
   </s3-layer>
 
