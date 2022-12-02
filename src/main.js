@@ -13,10 +13,15 @@ import toasts from './components/toasts'
 import { s3Layer,layer } from 'vue3-layer';
 import 'vue3-layer/dist/s3Layer.css';
 
+import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
+import ContextMenu from '@imengyu/vue3-context-menu'
+
+
 
 const app = createApp(App) // 创建实例
 app.component('s3-layer', s3Layer);
 app.use(mavonEditor)
 app.use(router)
 app.use(toasts)
+app.use(ContextMenu)
 app.mount('#app')

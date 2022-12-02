@@ -1,6 +1,17 @@
 <script setup>
 import { ref,onMounted,watch,getCurrentInstance,reactive,toRefs  } from 'vue';
-import { addFolderApi,getFolders,getCodeList,addCodeApi,getCode,saveCodeApi,delCodeApi,editFolderApi,seachCodeApi} from '@/service/index';
+import { 
+  addFolderApi,
+  getFolders,
+  getCodeList,
+  addCodeApi,
+  getCode,
+  saveCodeApi,
+  delCodeApi,
+  editFolderApi,
+  seachCodeApi,
+  setSharePass
+} from '@/service/index';
 import { Authing } from '@authing/web';
 import { debounce } from '@/utils/debounce';
 import Pagination from '../components/pagination'
@@ -341,10 +352,10 @@ watch(keyword, (newVal, oldVal) => {
 
 let showLoading = ref(false);
 
-function share(){
+function share(id,name){
   console.log('window.location.host',window.location.host);
   console.log('activeCode.value._id',activeCode.value._id);
-  let url = `${activeCode.value.noteTitle} https://${window.location.host}/share?shareId=${activeCode.value._id}`
+  let url = `${id?name:activeCode.value.noteTitle} https://${window.location.host}/share?shareId=${id?id:activeCode.value._id}`
   navigator.clipboard.writeText(url).then(()=>{
     layer.msg('复制成功,去分享吧!')
   });
@@ -353,6 +364,51 @@ function share(){
 // 编辑器
 let subfield = ref(true);
 let defaultOpen = ref('preview');
+
+//分享密码
+let shouwShareCode = ref(false);
+let sharePassForm = ref({notePass:'',_id:''});
+async function confirmSharePass(){
+  console.log('sharePassForm',sharePassForm.value);
+  let {code,data,msg} = await setSharePass(sharePassForm.value);
+  layer.msg(msg)
+}
+
+const _this= instance.appContext.config.globalProperties;
+function onContextMenu(item,e) {
+  sharePassForm.value = item;
+  // console.log('e.x',e.x);
+  // console.log('e.y',e.y);
+    //prevent the browser's default menu
+    e.preventDefault();
+    //shou our menu
+    _this.$contextmenu({
+      x: e.x,
+      y: - e.y,
+      zIndex:10001,
+      items: [
+        { 
+          label: "分享密码", 
+          onClick: () => {
+            shouwShareCode.value = true
+          }
+        },
+        { 
+          label: "分享", 
+          onClick: () => {
+            share(item._id,item.noteTitle)
+          }
+        },
+        { 
+          label: "删除", 
+          onClick: () => {
+            delCode(item._id)
+          }
+        },
+      ]
+    });
+  }
+     
 
 </script>
 
@@ -392,9 +448,9 @@ let defaultOpen = ref('preview');
         <span class="add" @click="addCode">+</span>
       </div>
       <ul v-if="codeList.length>0" class="code-list">
-        <li v-for="(item,index) in codeList" class="code-title u-flex u-row-between" :class="index==codeIndex?'active':''" :key="item.id">
-            <span  @click="codeClick(item,index)" class="u-flex-1 ellipsis">{{ item.noteTitle }}</span>
-            <span class="del" @click="delCode(item._id)">删除</span>
+        <li v-for="(item,index) in codeList" @click="codeClick(item,index)" @contextmenu="onContextMenu(item,$event)" class="code-title u-flex u-row-between" :class="index==codeIndex?'active':''" :key="item.id">
+            <span class="u-flex-1 ellipsis">{{ item.noteTitle }}</span>
+            <!-- <span class="del" @click="delCode(item._id)">删除</span> -->
         </li>
       </ul>
       <div v-else class="tip">请先新增笔记</div>
@@ -445,6 +501,21 @@ let defaultOpen = ref('preview');
   </s3-layer>
 
   <s3-layer
+    v-model="shouwShareCode"
+    :btn="['确认']"
+    :closeBtn="2"
+    area="400px"
+    title="分享密码"
+    @yes="confirmSharePass"
+  >
+    <div>
+      <div class="">{{sharePassForm.noteTitle}}</div>
+      <span style="margin-right:8px">分享密码</span>
+      <input type="text" v-model="sharePassForm.notePass" maxlength="18" placeholder="未设置分享密码">
+    </div>
+  </s3-layer>
+
+  <s3-layer
     v-model="showDelCode"
     :btn="['确认删除']"
     :closeBtn="2"
@@ -453,7 +524,7 @@ let defaultOpen = ref('preview');
     @yes="confirmDelCode"
   >
     <div>
-      <span style="margin-right:8px">确认删除笔记？</span>
+      <span style="margin-right:8px">确认删除-{{sharePassForm.noteTitle}}-笔记？</span>
     </div>
   </s3-layer>
 

@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-23 17:05:56
  * @LastEditors: gcz
- * @LastEditTime: 2022-12-01 16:19:31
+ * @LastEditTime: 2022-12-02 11:39:07
  * @FilePath: \codeHome\src\views\Share.vue
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
 -->
@@ -19,6 +19,20 @@
             />
         </section>
         <button class="bottom-btn" @click="$router.push({path:'/'})">返回首页</button>
+        <s3-layer
+            v-model="needpass"
+            :btn="['确认']"
+            :closeBtn="2"
+            area="400px"
+            title="分享密码"
+            @yes="confirmSharePass"
+        >
+            <div>
+                <div class="" v-if="enterpassCount">需要正确的密码 {{enterpassCount}}次</div>
+            <span style="margin-right:8px">分享密码</span>
+            <input type="text" v-model="notePass" maxlength="18" placeholder="分享密码">
+            </div>
+        </s3-layer>
     </div>
 </template>
 
@@ -30,6 +44,9 @@ import { getShareCode } from '@/service/index';
         data () {
             return {
                 shareId:'',
+                notePass:'',
+                needpass:false,
+                enterpassCount:0,
                 activeCode:{noteContent:''},
                 toolbars : {
                     bold: true, // 粗体
@@ -74,16 +91,34 @@ import { getShareCode } from '@/service/index';
             if(this.shareId){
                 this.getShareCode(this.shareId)
             }
+            this.notePass = localStorage.getItem(this.shareId);
+            if(this.notePass){
+                this.getShareCode(this.shareId,this.notePass)
+            }
         },
         methods: {
-            async getShareCode(shareId){
-                let {code,data,msg} = await getShareCode(shareId);
-                if(data){
-                    this.activeCode = data
+            async getShareCode(shareId,notePass){
+                let {code,data,msg} = await getShareCode(shareId,notePass);
+                if(data){                    
+                    if(data=='needpass'){
+                        this.needpass = true;
+                        this.notePass = '';
+                        localStorage.removeItem(this.shareId);
+                        // alert('需要正确的密码')
+                    }else{
+                        this.needpass = false;
+                        this.activeCode = data;
+                        this.enterpassCount =0;
+                        localStorage.setItem(this.shareId,notePass);
+                    }
                 }else{
                     this.$router.push({path:'/'})
                 }
                 
+            },
+            confirmSharePass(){
+                this.enterpassCount +=1;
+                this.getShareCode(this.shareId,this.notePass)
             }
         },
     }
