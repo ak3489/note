@@ -448,7 +448,12 @@ function onContextMenu(item,e) {
         <span class="add" @click="addCode">+</span>
       </div>
       <ul v-if="codeList.length>0" class="code-list">
-        <li v-for="(item,index) in codeList" @click="codeClick(item,index)" @contextmenu="onContextMenu(item,$event)" class="code-title u-flex u-row-between" :class="index==codeIndex?'active':''" :key="item.id">
+        <li v-for="(item,index) in codeList" 
+          @click="codeClick(item,index)" 
+          @contextmenu="onContextMenu(item,$event)" 
+          class="code-title u-flex u-row-between" 
+          :class="[index==codeIndex?'active':'',item.notePass?'has-pass':'']" 
+          :key="item.id">
             <span class="u-flex-1 ellipsis">{{ item.noteTitle }}</span>
             <!-- <span class="del" @click="delCode(item._id)">删除</span> -->
         </li>
@@ -637,6 +642,19 @@ function onContextMenu(item,e) {
         .code-title{
             padding: 5px 10px;
             border-radius: 5px;
+            position: relative;
+            &::before{
+              content:'';
+              width: 4px;
+              height: 4px;
+              background-color: #65698b;
+              margin-right: 8px;
+            }
+            &.has-pass{
+              &::before{
+                background-color: crimson;
+              }
+            }
             cursor: pointer;
             .del{
               display: none;
