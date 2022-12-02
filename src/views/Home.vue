@@ -352,10 +352,13 @@ watch(keyword, (newVal, oldVal) => {
 
 let showLoading = ref(false);
 
-function share(id,name){
-  console.log('window.location.host',window.location.host);
-  console.log('activeCode.value._id',activeCode.value._id);
-  let url = `${id?name:activeCode.value.noteTitle} https://${window.location.host}/share?shareId=${id?id:activeCode.value._id}`
+function share(item){
+  // console.log('window.location.host',window.location.host);
+  // console.log('activeCode.value._id',activeCode.value._id);
+  console.log('item',item);
+  let $item = item?item:activeCode.value;
+  let pass = $item.notePass?` 密码:${$item.notePass}`:'';
+  let url = `${$item.noteTitle} https://${window.location.host}/share?shareId=${$item._id}${pass}`
   navigator.clipboard.writeText(url).then(()=>{
     layer.msg('复制成功,去分享吧!')
   });
@@ -396,7 +399,7 @@ function onContextMenu(item,e) {
         { 
           label: "分享", 
           onClick: () => {
-            share(item._id,item.noteTitle)
+            share(item)
           }
         },
         { 
@@ -541,7 +544,7 @@ function onContextMenu(item,e) {
     </div>
   </div>
 
-  <button class="bottom-btn" v-if="activeCode._id" @click="share">分享</button>
+  <button class="bottom-btn" v-if="activeCode._id" @click="share()">分享</button>
 
   </div>
 </template>
