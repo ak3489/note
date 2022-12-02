@@ -1,20 +1,21 @@
 <script setup>
-import { ref,onMounted,watch,getCurrentInstance,reactive,toRefs  } from 'vue';
+import { ref,onMounted,watch,getCurrentInstance,reactive  } from 'vue';
 import { 
-  addFolderApi,
+  // addFolderApi,
   getFolders,
   getCodeList,
   addCodeApi,
   getCode,
   saveCodeApi,
   delCodeApi,
-  editFolderApi,
+  // editFolderApi,
   seachCodeApi,
   setSharePass
 } from '@/service/index';
 import { Authing } from '@authing/web';
 import { debounce } from '@/utils/debounce';
 import Pagination from '../components/pagination'
+import Folders from '../components/Folders.vue'
 const sdk = new Authing({
   // 应用的认证地址，例如：https://domain.authing.cn
   domain: 'https://mynote.authing.cn',
@@ -27,7 +28,7 @@ const sdk = new Authing({
 });
 const state = reactive({
   loginState: null,
-  userInfo: null,
+  userInfo: {},
 });
 
 /**
@@ -64,7 +65,7 @@ const getUserInfo = async () => {
     accessToken: state.loginState.accessToken,
   });
   // console.log('userInfo',userInfo);
-  addFolderForm.value.userId=userInfo.userId;
+  // addFolderForm.value.userId=userInfo.userId;
   addCodeForm.value.userId=userInfo.userId
   state.userInfo = userInfo;
   handleGetFolders()
@@ -108,9 +109,15 @@ function closeHandle(){
 
 let folderIndex = ref(0);
 let folderList = ref([]);
-function folderClick(item,index){
+// function folderClick(item,index){
+//   queryParams.value.pageNo = 1;
+//   folderIndex.value = index
+// }
+
+function onFolderClick(e){
   queryParams.value.pageNo = 1;
-  folderIndex.value = index
+  folderIndex.value = e
+  // console.log('onFolderClick',e);
 }
 
 let codeIndex = ref(0);
@@ -212,44 +219,6 @@ async function handleGetCode(codeId,isClick){
   activeCode.value = data
 }
 
-let showAddFolder = ref(false);
-let folderTool = ref('');
-let editFolderForm = ref();
-let addFolderForm = ref(
-  {folderName:'',userId:''}
-);
-function addFolder(){
-  folderTool.value = 'add';
-  showAddFolder.value = true
-}
-async function confirmAddFolder(){
-  console.log('folderTool.value',folderTool.value);
-  // console.log('addFolderForm',addFolderForm.value);
-  let hasType = folderList.value.some(function(item){
-    console.log('item',item);
-    console.log('folderList.value.folderName',folderList.value.folderName);
-    return item.folderName == addFolderForm.value.folderName
-  });
-  if (hasType){layer.msg('已经有了');return false};
-
-  showAddFolder.value = false;
-  if(folderTool.value=='add'){
-    let {code,data,msg} = await addFolderApi(addFolderForm.value);
-    layer.msg(msg);
-  }else if(folderTool.value=='edit'){
-    console.log('addFolderForm.value',addFolderForm.value);
-    editFolderForm.value.folderName = addFolderForm.value.folderName;
-    let {code,data,msg} = await editFolderApi(editFolderForm.value);
-    layer.msg(msg);
-  }
-  handleGetFolders()
-}
-
-function editFolder(item){
-  editFolderForm.value = item;
-  showAddFolder.value = true;
-  folderTool.value = 'edit';
-}
 
 let showAddCode = ref(false);
 let addCodeForm = ref(
@@ -417,19 +386,7 @@ function onContextMenu(item,e) {
 
 <template>
   <div class="parent">
-    <section class="folders">
-        <div class="title u-flex u-row-between">
-            <span>文件夹</span>
-            <span class="add-folder" @click="addFolder">+</span>
-        </div>
-        <ul v-if="folderList.length>0" class="folder-list">
-          <li v-for="(item,index) in folderList" class="folder u-flex u-row-between" :class="index==folderIndex?'active':''" :key="item._id">
-             <span @click="folderClick(item,index)" class="u-flex-1">{{ item.folderName }}</span>
-             <span @click="editFolder(item)" class="edit">编辑</span>
-          </li>
-        </ul>
-        <div v-else class="tip">还没有文件夹,请先新增</div>
-    </section> 
+    <Folders class="folders" :folderList="folderList" :userId="state.userInfo.userId" @folderClick="onFolderClick" @getFolders="handleGetFolders"/>
     <!-- folders 结束 -->
     <section class="info">
       <div class="user-info" v-if="state.loginState&&state.userInfo">
@@ -480,19 +437,7 @@ function onContextMenu(item,e) {
        />
     </section>
 
-    <s3-layer
-    v-model="showAddFolder"
-    :btn="['确认']"
-    :closeBtn="2"
-    area="400px"
-    :title="folderTool=='add'?'新增文件夹':'编辑文件夹'"
-    @yes="confirmAddFolder"
-  >
-    <div>
-      <span style="margin-right:8px">文件夹名称</span>
-      <input type="text" v-model="addFolderForm.folderName" maxlength="10" placeholder="文件夹名称">
-    </div>
-  </s3-layer>
+   
 
   <s3-layer
     v-model="showAddCode"
@@ -564,40 +509,6 @@ function onContextMenu(item,e) {
     grid-column-gap: 0px;
     grid-row-gap: 0px;
     background-color: var(--bg-color);
-    .folders{
-        padding: 10px;
-        overflow-y: auto;
-        .add-folder{
-          width: 30px;
-          height: 30px;
-          line-height: 30px;
-          text-align: center;
-          font-size: 30px;
-          cursor: pointer;
-          &:hover{
-            background: #ddd;
-          }
-        }
-        .folder-list{
-          .folder{
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            .edit{
-              display: none;
-            }
-            &:hover{
-              background-color: #2a2d53;
-              .edit{
-                display: block;
-              }
-            }
-            &.active{
-              background-color: #484c85;
-            }
-          }
-        }
-    }
     .info{
       padding-top: 24px;
       text-align: center;
