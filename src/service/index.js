@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-17 15:48:03
  * @LastEditors: gcz
- * @LastEditTime: 2022-12-02 11:06:07
+ * @LastEditTime: 2022-12-12 16:49:26
  * @FilePath: \codeHome\src\service\index.js
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
  */
@@ -28,6 +28,9 @@ export function getCode(codeId, isClick) {
 }
 export function getShareCode(codeId, notePass) {
   return axios.get(`/code/getShareCode?codeId=${codeId}&notePass=${notePass}`);
+}
+export function changeCodeTitle(params) {
+  return axios.post(`/code/changeCodeTitle`, params);
 }
 
 export function addFolderApi(params) {

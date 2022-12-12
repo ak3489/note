@@ -10,7 +10,8 @@ import {
   delCodeApi,
   // editFolderApi,
   seachCodeApi,
-  setSharePass
+  setSharePass,
+  changeCodeTitle
 } from '@/service/index';
 import { Authing } from '@authing/web';
 import { debounce } from '@/utils/debounce';
@@ -219,19 +220,31 @@ async function handleGetCode(codeId,isClick){
   activeCode.value = data
 }
 
-
+let codeOperateType = ref('add');
 let showAddCode = ref(false);
 let addCodeForm = ref(
   {noteTitle:'',folderId:'',noteContent:''}
 );
+let editCodeForm = ref({noteTitle:'',codeId:''})
 async function confirmAddCode(){
-  console.log('addCodeForm',addCodeForm.value);
-  let {code,data,msg} = await addCodeApi(addCodeForm.value);
-  layer.msg(msg);
-  handleGetCodeList()
-  showAddCode.value = false
+  if(codeOperateType.value == 'add'){
+    // console.log('addCodeForm',addCodeForm.value);
+    let {code,data,msg} = await addCodeApi(addCodeForm.value);
+    layer.msg(msg);
+    handleGetCodeList()
+    showAddCode.value = false
+
+  }else if(codeOperateType.value == 'edit'){
+    console.log('editCodeForm',editCodeForm.value);
+    let {code,data,msg} = await changeCodeTitle(editCodeForm.value);
+    layer.msg(msg);
+    handleGetCodeList()
+    showAddCode.value = false
+
+  }
 }
 function addCode(){
+  codeOperateType.value = 'add';
   // console.log('folderList',folderList.value.length);
   console.log('folderList',folderList.value[folderIndex.value]);
   if(folderList.value.length<1){
@@ -245,6 +258,13 @@ function addCode(){
     console.log('addCodeForm',addCodeForm.value);
     showAddCode.value = true
   }
+}
+
+function editCodeTitle(item){
+  codeOperateType.value = 'edit';
+  showAddCode.value = true;
+  editCodeForm.value.noteTitle = item.noteTitle;
+  editCodeForm.value.codeId = item._id;
 }
 
 let delCodeId = ref('')
@@ -399,6 +419,12 @@ function onContextMenu(item,e) {
           }
         },
         { 
+          label: "更改标题", 
+          onClick: () => {
+            editCodeTitle(item)
+          }
+        },
+        { 
           label: "分享", 
           onClick: () => {
             share(item)
@@ -483,12 +509,26 @@ function onContextMenu(item,e) {
     :btn="['确认']"
     :closeBtn="2"
     area="400px"
-    title="新增笔记"
+    :title="codeOperateType == 'add' ? '新增笔记' : '编辑笔记标题'"
     @yes="confirmAddCode"
   >
     <div>
       <span style="margin-right:8px">笔记标题</span>
-      <input type="text" v-model="addCodeForm.noteTitle" maxlength="20" placeholder="笔记标题">
+      <!-- <input type="text" v-model="addCodeForm.noteTitle" maxlength="20" placeholder="笔记标题"> -->
+      <input
+          v-if="codeOperateType == 'add'"
+          type="text"
+          v-model="addCodeForm.noteTitle"
+          maxlength="10"
+          placeholder="笔记标题"
+        />
+        <input
+          v-else
+          type="text"
+          v-model="editCodeForm.noteTitle"
+          maxlength="10"
+          placeholder="笔记标题"
+        />
     </div>
   </s3-layer>
 
