@@ -526,7 +526,7 @@ function onContextMenu(item,e) {
           v-else
           type="text"
           v-model="editCodeForm.noteTitle"
-          maxlength="10"
+          maxlength="20"
           placeholder="笔记标题"
         />
     </div>
