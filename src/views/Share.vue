@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-23 17:05:56
  * @LastEditors: gcz
- * @LastEditTime: 2022-12-02 11:39:07
+ * @LastEditTime: 2022-12-15 16:48:00
  * @FilePath: \codeHome\src\views\Share.vue
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
 -->
@@ -15,6 +15,8 @@
                 v-model="activeCode.noteContent" 
                 :toolbars="toolbars"
                 :html="false"
+                :subfield="subfield"
+                :defaultOpen="defaultOpen"
                 codeStyle="atom-one-dark"
             />
         </section>
@@ -47,6 +49,8 @@ import { getShareCode } from '@/service/index';
                 notePass:'',
                 needpass:false,
                 enterpassCount:0,
+                subfield:true,
+                defaultOpen:'preview',
                 activeCode:{noteContent:''},
                 toolbars : {
                     bold: true, // 粗体
@@ -94,6 +98,12 @@ import { getShareCode } from '@/service/index';
             this.notePass = localStorage.getItem(this.shareId);
             if(this.notePass){
                 this.getShareCode(this.shareId,this.notePass)
+            }
+
+            let clientWidth = document.documentElement.clientWidth;
+            if(clientWidth<1200){
+                this.subfield = false
+                this.defaultOpen = 'preview'
             }
         },
         methods: {
