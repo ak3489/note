@@ -519,7 +519,7 @@ function onContextMenu(item,e) {
           v-if="codeOperateType == 'add'"
           type="text"
           v-model="addCodeForm.noteTitle"
-          maxlength="10"
+          maxlength="20"
           placeholder="笔记标题"
         />
         <input
