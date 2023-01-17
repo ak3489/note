@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-17 15:48:03
  * @LastEditors: gcz
- * @LastEditTime: 2022-12-12 16:49:26
+ * @LastEditTime: 2023-01-17 10:04:35
  * @FilePath: \codeHome\src\service\index.js
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
  */
@@ -38,6 +38,10 @@ export function addFolderApi(params) {
 }
 export function editFolderApi(params) {
   return axios.post(`/code/editFolder`,params);
+}
+export function delFolderApi(id) {
+  console.log('idid', id);
+  return axios.post(`/code/delFolder`, { id: id });
 }
 
 export function addCodeApi(params) {

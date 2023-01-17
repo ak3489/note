@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, getCurrentInstance } from "vue";
-import { addFolderApi, editFolderApi } from "@/service/index";
+import { addFolderApi, editFolderApi,delFolderApi } from "@/service/index";
 const props = defineProps(["folderList", "userId"]);
 const emit = defineEmits(["folderClick", "getFolders"]);
 const instance = getCurrentInstance();
@@ -56,6 +56,27 @@ function editFolder(item) {
   folderTool.value = "edit";
 }
 
+let showDelFolder = ref(false)
+let delFolderId = ref('')
+let delFolderName = ref('')
+function delFolder(item) {
+  showDelFolder.value = true;
+  delFolderId.value = item._id;
+  delFolderName.value = item.folderName;
+  // console.log('delFolder item',item);
+}
+
+async function confirmDelFolder(){
+  let {code,msg} = await delFolderApi(delFolderId.value)
+  layer.msg(msg)
+  if(code==200){
+    emit("getFolders");
+  }else{
+    console.log('code',code);
+    console.log('msg',msg);
+  }
+}
+
 function onContextMenu(item, e) {
   // console.log('e.x',e.x);
   // console.log('e.y',e.y);
@@ -71,6 +92,12 @@ function onContextMenu(item, e) {
         label: "编辑",
         onClick: () => {
           editFolder(item);
+        },
+      },
+      {
+        label: "删除",
+        onClick: () => {
+          delFolder(item);
         },
       },
     ],
@@ -127,6 +154,20 @@ onMounted(() => {});
         />
       </div>
     </s3-layer>
+
+    <s3-layer
+    v-model="showDelFolder"
+    :btn="['确认删除']"
+    :closeBtn="2"
+    area="400px"
+    title="删除"
+    @yes="confirmDelFolder"
+  >
+    <div>
+      <span style="margin-right:8px">确认删除-将会删除<span style="color:red">{{delFolderName}}</span>文件夹下所有笔记！</span>
+    </div>
+  </s3-layer>
+
   </section>
 </template>
 <style lang="scss">
