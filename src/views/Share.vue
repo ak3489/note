@@ -3,17 +3,19 @@
  * @Author: gcz
  * @Date: 2022-11-23 17:05:56
  * @LastEditors: gcz
- * @LastEditTime: 2022-12-15 16:48:00
+ * @LastEditTime: 2023-02-16 11:46:29
  * @FilePath: \codeHome\src\views\Share.vue
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
 -->
 <template>
     <div class=''>
         <section class="code">
+            <div class="title">{{activeCode.noteTitle}}</div>
             <mavon-editor 
                 class="mavonEditor" 
                 v-model="activeCode.noteContent" 
                 :toolbars="toolbars"
+                :toolbarsFlag="false"
                 :html="false"
                 :subfield="subfield"
                 :defaultOpen="defaultOpen"
@@ -101,10 +103,10 @@ import { getShareCode } from '@/service/index';
             }
 
             let clientWidth = document.documentElement.clientWidth;
-            if(clientWidth<1200){
+            // if(clientWidth<1200){
                 this.subfield = false
                 this.defaultOpen = 'preview'
-            }
+            // }
         },
         methods: {
             async getShareCode(shareId,notePass){
@@ -135,8 +137,22 @@ import { getShareCode } from '@/service/index';
 </script>
 
 <style lang='scss' scoped>
+@media screen and (min-width: 1200px) {
+    .code{
+        width: 1200px;
+        margin: 0 auto;
+    }
+}
 //@import url()
+.title{
+    height: 36px;
+    color: #fff;
+    padding: 16px;
+    font-size: 16px;
+}
 .v-note-wrapper{
-    height: 100vh;
+    height:  calc( 100vh - 36px - 32px - 24px );
+    border-radius: 5px;
+    overflow: hidden;
 }
 </style>
