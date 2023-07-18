@@ -666,6 +666,7 @@ function onContextMenu(item,e) {
       .pagination-box{
         position: absolute;
         left: 10px;
+        right:0;
         bottom: 0;
         :deep(button) {
           padding: 0;
