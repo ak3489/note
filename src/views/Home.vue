@@ -116,8 +116,10 @@ let folderList = ref([]);
 // }
 
 function onFolderClick(e){
+  isFolderClick.value = true;
   queryParams.value.pageNo = 1;
-  folderIndex.value = e
+  folderIndex.value = e;
+  keyword.value = '';
   // console.log('onFolderClick',e);
 }
 
@@ -324,6 +326,7 @@ watch(folderIndex, (newVal, oldVal) => {
 // },{immediate:true})
 
 let keyword = ref('');
+let isFolderClick = ref(false);
 async function seachCode(){
   let userId = state.userInfo?.userId;
   let {code,data,msg} = await seachCodeApi(userId,keyword.value);
@@ -334,7 +337,9 @@ watch(keyword, (newVal, oldVal) => {
   if(keyword.value.length>0){
     debounce(seachCode(), 500, false);
   }else{
-    handleGetCodeList()
+    if(!isFolderClick.value){
+      handleGetCodeList()
+    }
   }
   
 })
