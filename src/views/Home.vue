@@ -332,17 +332,29 @@ async function seachCode(){
   let {code,data,msg} = await seachCodeApi(userId,keyword.value);
   codeList.value = data
 }
-watch(keyword, (newVal, oldVal) => { 
-  console.log('keyword',newVal)
-  if(keyword.value.length>0){
-    debounce(seachCode(), 500, false);
-  }else{
-    if(!isFolderClick.value){
+// watch(keyword, (newVal, oldVal) => { 
+//   // console.log('keyword',newVal)
+//   // console.log('keyword.value.length',keyword.value.length);
+//   // console.log('!isFolderClick.value',!isFolderClick.value);
+//   // if(!isFolderClick.value){
+//   //   debounce(seachCode(), 500, false);
+//   // }else{
+//   //   handleGetCodeList()
+//   // }
+// })
+
+
+function keywordChange(e){
+  if (!e.isComposing) {
+    // console.log('keyword',keyword.value);
+    if(keyword.value){
+      debounce(seachCode(), 500, false);
+    }else{
       handleGetCodeList()
     }
+    // console.log('当前输入的内容：', keyword);
   }
-  
-})
+}
 
 let showLoading = ref(false);
 
@@ -474,7 +486,7 @@ function onContextMenu(item,e) {
      <!-- 信息 结束 -->
     <section class="list">
       <div class="top u-flex">
-        <input class="input u-flex-1" v-model="keyword" type="text" placeholder="搜索">
+        <input class="input u-flex-1" v-model="keyword" @input="keywordChange" type="text" placeholder="搜索">
         <span class="add" @click="addCode">+</span>
       </div>
       <ul v-if="codeList.length>0" class="code-list">
