@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-17 10:52:43
  * @LastEditors: gcz
- * @LastEditTime: 2022-11-21 11:40:24
+ * @LastEditTime: 2024-08-21 10:22:07
  * @FilePath: \codeHome\src\views\Login.vue
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
 -->
@@ -66,6 +66,7 @@ const getUserInfo = async () => {
   console.log('userInfo',userInfo);
   localStorage.setItem('userInfo',userInfo)
   state.userInfo = userInfo;
+  window.location.replace("/");
 };
 onMounted(async () => {
    // 校验当前 url 是否是登录回调地址

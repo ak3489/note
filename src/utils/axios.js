@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-17 15:44:06
  * @LastEditors: gcz
- * @LastEditTime: 2022-11-21 14:29:30
+ * @LastEditTime: 2024-08-21 10:22:26
  * @FilePath: \codeHome\src\utils\axios.js
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
  */
@@ -29,7 +29,7 @@
    if (res.data.code != 200) {
     //  if (res.data.message) Toast.fail(res.data.message)
      if (res.data.msg) alert(res.data.msg)
-     if (res.data.code == 416) {
+     if (res.data.code == 416||res.data.code == 401) {
        router.push({ path: '/login' })
      }
      if (res.data.data && window.location.hash == '#/login') {
