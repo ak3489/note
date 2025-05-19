@@ -3,7 +3,7 @@
  * @Author: gcz
  * @Date: 2022-11-23 17:05:56
  * @LastEditors: gcz
- * @LastEditTime: 2023-02-16 11:46:29
+ * @LastEditTime: 2025-05-19 09:27:24
  * @FilePath: \codeHome\src\views\Share.vue
  * @Copyright: Copyright (c) 2016~2022 by gcz, All Rights Reserved. 
 -->
@@ -122,6 +122,8 @@ import { getShareCode } from '@/service/index';
                         this.activeCode = data;
                         this.enterpassCount =0;
                         localStorage.setItem(this.shareId,notePass);
+                        // 设置网页标题
+                        document.title = this.activeCode.noteTitle;
                     }
                 }else{
                     this.$router.push({path:'/'})
