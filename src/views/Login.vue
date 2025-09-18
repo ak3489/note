@@ -60,7 +60,7 @@ const getUserInfo = async () => {
   console.log('state==========',state)
   console.log('state.userInfo',state.userInfo)
   if (!state.loginState||(!state.userInfo||state.userInfo.statusCode===401)) {
-    alert("用户未登录");
+    // alert("用户未登录");
     login();
     return;
   }
