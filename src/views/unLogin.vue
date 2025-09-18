@@ -22,7 +22,7 @@
                 codeStyle="atom-one-dark"
              />
         </section>
-        <button class="bottom-btn" @click="$router.push({path:'/home'})">登录</button>
+        <button class="bottom-btn" @click="$router.push({path:'/Login'})">登录</button>
     </div>
 </template>
 

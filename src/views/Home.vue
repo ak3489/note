@@ -15,8 +15,10 @@ import {
 } from '@/service/index';
 import { Authing } from '@authing/web';
 import { debounce } from '@/utils/debounce';
+import { useRouter } from 'vue-router'
 import Pagination from '../components/pagination'
 import Folders from '../components/Folders.vue'
+const router = useRouter()
 const sdk = new Authing({
   // 应用的认证地址，例如：https://domain.authing.cn
   domain: 'https://mynote.authing.cn',
@@ -40,7 +42,8 @@ const getLoginState = async () => {
   // console.log('获取用户的登录状态',res);
   state.loginState = res;
   if (!res) {
-    sdk.loginWithRedirect();
+    router.push({ path: '/unlogin' })
+    // sdk.loginWithRedirect();
   }else{
     getUserInfo()
   }
@@ -67,7 +70,9 @@ const getUserInfo = async () => {
   });
   console.log('userInfo',userInfo);
   if(userInfo.statusCode===401){
-    sdk.loginWithRedirect();
+    //跳转到unLogin页面
+    router.push({ path: '/unlogin' })
+    // sdk.loginWithRedirect();
   }
   // addFolderForm.value.userId=userInfo.userId;
   addCodeForm.value.userId=userInfo.userId
