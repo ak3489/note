@@ -68,7 +68,7 @@ const getUserInfo = async () => {
   const userInfo = await sdk.getUserInfo({
     accessToken: state.loginState.accessToken,
   });
-  console.log('userInfo',userInfo);
+  // console.log('userInfo',userInfo);
   if(userInfo.statusCode===401){
     //跳转到unLogin页面
     router.push({ path: '/unlogin' })

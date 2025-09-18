@@ -35,12 +35,13 @@ const state = reactive({
  */
 const getLoginState = async () => {
   const res = await sdk.getLoginState();
-  // console.log('获取用户的登录状态',res);
+  console.log('获取用户的登录状态',res);
   state.loginState = res;
   if (!res) {
+    console.log('111111')
     sdk.loginWithRedirect();
   }else{
-    
+    console.log('22222')
     getUserInfo()
   }
 };
@@ -56,11 +57,14 @@ const login = () => {
  * 用 Access Token 获取用户身份信息
  */
 const getUserInfo = async () => {
-  if (!state.loginState) {
+  console.log('state==========',state)
+  console.log('state.userInfo',state.userInfo)
+  if (!state.loginState||(!state.userInfo||state.userInfo.statusCode===401)) {
     alert("用户未登录");
+    login();
     return;
   }
-  // console.log('sdk.getUserInfo',sdk.getUserInfo);
+  console.log('sdk.getUserInfo',sdk.getUserInfo);
   const userInfo = await sdk.getUserInfo({
     accessToken: state.loginState.accessToken,
   });
