@@ -20,7 +20,8 @@ const sdk = new Authing({
   domain: 'https://mynote.authing.cn',
   appId: '6376fb5d2d8111d6673ed0fc',
   // 登录回调地址，需要在控制台『应用配置 - 登录回调 URL』中指定
-  redirectUri: 'http://127.0.0.1:5173/login',
+  // redirectUri: 'http://127.0.0.1:5173/login',
+  redirectUri: process.env.NODE_ENV == 'development' ? 'http://127.0.0.1:5173' : 'https://note.momen.vip',
   // redirectUri: 'https://note.momen.vip',
   userPoolId:'6376fb022996db9f5c2396ba',//用户池id
 });

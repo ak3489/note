@@ -1,5 +1,5 @@
 <script setup>
-import { ref,onMounted,watch,getCurrentInstance,reactive  } from 'vue';
+import { ref, onMounted, watch, getCurrentInstance, reactive } from 'vue';
 import { 
   // addFolderApi,
   getFolders,
@@ -65,10 +65,7 @@ const getUserInfo = async () => {
   const userInfo = await sdk.getUserInfo({
     accessToken: state.loginState.accessToken,
   });
-  console.log('userInfo',userInfo);
-  if(userInfo.statusCode===401){
-    sdk.loginWithRedirect();
-  }
+  // console.log('userInfo',userInfo);
   // addFolderForm.value.userId=userInfo.userId;
   addCodeForm.value.userId=userInfo.userId
   state.userInfo = userInfo;
@@ -123,7 +120,8 @@ function onFolderClick(e){
   queryParams.value.pageNo = 1;
   folderIndex.value = e;
   keyword.value = '';
-  // console.log('onFolderClick',e);
+  // 移动端点击文件夹后自动关闭侧边栏
+  autoCloseSidebar();
 }
 
 let codeIndex = ref(0);
@@ -131,7 +129,9 @@ let codeList = ref([]);
 function codeClick(item,index){
   activeCode.value = item;
   codeIndex.value = index;
-  handleGetCode(activeCode.value._id,'click')
+  handleGetCode(activeCode.value._id,'click');
+  // 移动端点击代码项后自动关闭侧边栏
+  autoCloseSidebar();
 }
 
 let activeCode = ref({
@@ -287,12 +287,50 @@ async function confirmDelCode(){
   }
 }
 
+// 移动端侧边栏状态
+let isMobile = ref(false);
+let showFolderSidebar = ref(false);
+let showCodeListSidebar = ref(false);
+
+// 切换文件夹侧边栏
+function toggleFolderSidebar() {
+  showFolderSidebar.value = !showFolderSidebar.value;
+  if (showFolderSidebar.value) {
+    showCodeListSidebar.value = false;
+  }
+}
+
+// 切换代码列表侧边栏
+function toggleCodeListSidebar() {
+  showCodeListSidebar.value = !showCodeListSidebar.value;
+  if (showCodeListSidebar.value) {
+    showFolderSidebar.value = false;
+  }
+}
+
+// 关闭所有侧边栏
+function closeSidebars() {
+  showFolderSidebar.value = false;
+  showCodeListSidebar.value = false;
+}
+
+// 点击文件夹或代码项后自动关闭侧边栏（仅在移动端）
+function autoCloseSidebar() {
+  if (isMobile.value) {
+    closeSidebars();
+  }
+}
+
 onMounted(async () => {
+    // 检测是否为移动端
     let clientWidth = document.documentElement.clientWidth;
-    if(clientWidth<1200){
+    isMobile.value = clientWidth < 1200;
+    
+    if(isMobile.value){
       subfield.value = false
       defaultOpen.value = 'edit'
     }
+    
    // 校验当前 url 是否是登录回调地址
    if (sdk.isRedirectCallback()) {
     console.log("redirect");
@@ -311,8 +349,11 @@ onMounted(async () => {
     // 静默登录，直接获取到用户信息
     getLoginState();
   }
-  // console.log(`the component is now mounted.`);
   
+  // 监听窗口大小变化
+  window.addEventListener('resize', () => {
+    isMobile.value = document.documentElement.clientWidth < 1200;
+  });
 })
 
 
@@ -471,8 +512,28 @@ function onContextMenu(item,e) {
 
 <template>
   <div class="parent">
-    <Folders class="folders" :folderList="folderList" :userId="state.userInfo.userId" @folderClick="onFolderClick" @getFolders="handleGetFolders"/>
+    <!-- 移动端菜单按钮 -->
+    <div class="mobile-menu-buttons" v-if="isMobile">
+      <button class="folder-btn" @click="toggleFolderSidebar">
+        <i class="folder-icon">📁</i>
+      </button>
+      <button class="list-btn" @click="toggleCodeListSidebar">
+        <i class="list-icon">📝</i>
+      </button>
+    </div>
+
+    <!-- 文件夹侧边栏 -->
+    <div class="sidebar-overlay" v-if="showFolderSidebar && isMobile" @click="closeSidebars"></div>
+    <Folders 
+      class="folders" 
+      :class="{'mobile-sidebar': isMobile, 'show-sidebar': showFolderSidebar && isMobile}"
+      :folderList="folderList" 
+      :userId="state.userInfo.userId" 
+      @folderClick="onFolderClick" 
+      @getFolders="handleGetFolders"
+    />
     <!-- folders 结束 -->
+    
     <section class="info">
       <div class="user-info" v-if="state.loginState&&state.userInfo">
         <a href="https://mynote.authing.cn/u" target="_blank" rel="noopener noreferrer">
@@ -487,7 +548,10 @@ function onContextMenu(item,e) {
       </div>
     </section>
      <!-- 信息 结束 -->
-    <section class="list">
+    
+    <!-- 代码列表侧边栏 -->
+    <div class="sidebar-overlay" v-if="showCodeListSidebar && isMobile" @click="closeSidebars"></div>
+    <section class="list" :class="{'mobile-sidebar': isMobile, 'show-sidebar': showCodeListSidebar && isMobile}">
       <div class="top u-flex">
         <input class="input u-flex-1" v-model="keyword" @input="keywordChange" type="text" placeholder="搜索">
         <span class="add" @click="addCode">+</span>
@@ -702,6 +766,71 @@ function onContextMenu(item,e) {
           white-space: break-spaces;
         }
     }
+
+    // 移动端菜单按钮
+    .mobile-menu-buttons {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+
+      button {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: var(--bg-color);
+        border: 2px solid var(--border-color);
+        color: #fff;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: scale(1.1);
+        }
+
+        i {
+          font-style: normal;
+        }
+      }
+    }
+
+    // 侧边栏遮罩层
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 998;
+    }
+
+    // 移动端侧边栏样式
+    .mobile-sidebar {
+      position: fixed;
+      top: 0;
+      height: 100%;
+      width: 80%;
+      max-width: 300px;
+      background-color: var(--bg-color);
+      z-index: 999;
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+      transform: translateX(-100%);
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+
+      &.show-sidebar {
+        transform: translateX(0);
+      }
+    }
 }
 @keyframes spin {
   from {
@@ -751,14 +880,21 @@ function onContextMenu(item,e) {
 @media screen and (max-width: 1200px) {
   .parent{
     display: block;
+    
+    // 在移动端视图中隐藏常规的文件夹和列表区域
+    .folders:not(.mobile-sidebar),
+    .list:not(.mobile-sidebar) {
+      display: none;
+    }
+    
     .list{
       padding-bottom: 24px;
       .code-list{
         overflow: hidden;
         .code-title{
-          width: 50%;
+          width: 100%; // 在侧边栏中改为全宽显示
           box-sizing: border-box;
-          float: left;
+          float: none; // 移除浮动
         }
       }
       .pagination-box{
@@ -770,8 +906,11 @@ function onContextMenu(item,e) {
       display: none;
     }
 
+    // 确保编辑器区域占满屏幕
+    .code {
+      width: 100%;
+      height: 100vh;
+    }
   }
-  
-  
 }
 </style>
