@@ -1,5 +1,5 @@
 <script setup>
-import { ref,onMounted,watch,getCurrentInstance,reactive  } from 'vue';
+import { ref,onMounted,watch,getCurrentInstance,reactive,onUnmounted  } from 'vue';
 import { 
   // addFolderApi,
   getFolders,
@@ -15,10 +15,174 @@ import {
 } from '@/service/index';
 import { Authing } from '@authing/web';
 import { debounce } from '@/utils/debounce';
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import Pagination from '../components/pagination'
 import Folders from '../components/Folders.vue'
 const router = useRouter()
+const route = useRoute()
+
+// 列宽约束常量
+const COLUMN_CONSTRAINTS = {
+  minFoldersInfo: 200,  // 最小 200px
+  maxFoldersInfo: 500,  // 最大 500px
+  minList: 250,         // 最小 250px
+  maxList: 600,         // 最大 600px
+  minCode: 400          // 最小 400px
+};
+
+// 列宽状态管理
+const columnWidths = ref({
+  foldersInfo: 300,
+  list: 400
+});
+
+// 移动端检测状态
+const isMobile = ref(false);
+
+// localStorage 持久化
+const COLUMN_WIDTHS_KEY = 'note-app-column-widths';
+
+function saveColumnWidths(widths) {
+  try {
+    const data = {
+      foldersInfo: widths.foldersInfo,
+      list: widths.list,
+      version: 1
+    };
+    localStorage.setItem(COLUMN_WIDTHS_KEY, JSON.stringify(data));
+  } catch (error) {
+    console.warn('Failed to save column widths to localStorage:', error);
+  }
+}
+
+function loadColumnWidths() {
+  try {
+    const saved = localStorage.getItem(COLUMN_WIDTHS_KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (data && typeof data.foldersInfo === 'number' && typeof data.list === 'number') {
+        return {
+          foldersInfo: data.foldersInfo,
+          list: data.list
+        };
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load column widths from localStorage:', error);
+  }
+  return null;
+}
+
+// 拖拽状态管理
+const resizerState = ref({
+  isDragging: false,
+  activeResizer: null,
+  startX: 0,
+  startWidths: { foldersInfo: 300, list: 400 }
+});
+
+// 拖拽交互逻辑
+function startResize(resizer, event) {
+  if (isMobile.value) return;
+  
+  resizerState.value = {
+    isDragging: true,
+    activeResizer: resizer,
+    startX: event.clientX,
+    startWidths: { ...columnWidths.value }
+  };
+  
+  event.preventDefault();
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+}
+
+function onResize(event) {
+  if (!resizerState.value.isDragging) return;
+  
+  const deltaX = event.clientX - resizerState.value.startX;
+  const containerWidth = document.documentElement.clientWidth;
+  
+  if (resizerState.value.activeResizer === 'first') {
+    // 调整第一列和第二列的宽度
+    let newFoldersInfoWidth = resizerState.value.startWidths.foldersInfo + deltaX;
+    
+    // 应用约束
+    newFoldersInfoWidth = Math.max(COLUMN_CONSTRAINTS.minFoldersInfo, 
+                                  Math.min(COLUMN_CONSTRAINTS.maxFoldersInfo, newFoldersInfoWidth));
+    
+    // 确保第三列有足够空间
+    const remainingWidth = containerWidth - newFoldersInfoWidth - columnWidths.value.list;
+    if (remainingWidth >= COLUMN_CONSTRAINTS.minCode) {
+      columnWidths.value.foldersInfo = newFoldersInfoWidth;
+    }
+  } else if (resizerState.value.activeResizer === 'second') {
+    // 调整第二列和第三列的宽度
+    let newListWidth = resizerState.value.startWidths.list + deltaX;
+    
+    // 应用约束
+    newListWidth = Math.max(COLUMN_CONSTRAINTS.minList, 
+                           Math.min(COLUMN_CONSTRAINTS.maxList, newListWidth));
+    
+    // 确保第三列有足够空间
+    const remainingWidth = containerWidth - columnWidths.value.foldersInfo - newListWidth;
+    if (remainingWidth >= COLUMN_CONSTRAINTS.minCode) {
+      columnWidths.value.list = newListWidth;
+    }
+  }
+}
+
+function endResize() {
+  if (resizerState.value.isDragging) {
+    resizerState.value.isDragging = false;
+    resizerState.value.activeResizer = null;
+    
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    
+    // 保存列宽到 localStorage
+    saveColumnWidths(columnWidths.value);
+  }
+}
+
+// 响应式布局切换
+function checkMobileView() {
+  const clientWidth = document.documentElement.clientWidth;
+  const wasMobile = isMobile.value;
+  isMobile.value = clientWidth < 1200;
+  
+  // 从移动端切换回桌面端时恢复保存的列宽
+  if (wasMobile && !isMobile.value) {
+    const savedWidths = loadColumnWidths();
+    if (savedWidths) {
+      columnWidths.value = savedWidths;
+    }
+  }
+}
+
+function onWindowResize() {
+  checkMobileView();
+}
+
+// URL 同步功能
+function updateUrlNoteId(noteId) {
+  if (noteId) {
+    router.replace({ 
+      path: route.path, 
+      query: { ...route.query, noteId } 
+    });
+  } else {
+    const { noteId: _, ...otherQuery } = route.query;
+    router.replace({ 
+      path: route.path, 
+      query: otherQuery 
+    });
+  }
+}
+
+function getNoteIdFromUrl() {
+  return route.query.noteId || null;
+}
 const sdk = new Authing({
   // 应用的认证地址，例如：https://domain.authing.cn
   domain: 'https://mynote.authing.cn',
@@ -118,6 +282,7 @@ function closeHandle(){
 
 let folderIndex = ref(0);
 let folderList = ref([]);
+let isFolderClick = ref(false);
 // function folderClick(item,index){
 //   queryParams.value.pageNo = 1;
 //   folderIndex.value = index
@@ -136,6 +301,7 @@ let codeList = ref([]);
 function codeClick(item,index){
   activeCode.value = item;
   codeIndex.value = index;
+  updateUrlNoteId(item._id);
   handleGetCode(activeCode.value._id,'click')
 }
 
@@ -208,13 +374,37 @@ async function handleGetCodeList(){
   // console.log('folderId',folderId);
   let {code,data,totalCount,msg} = await getCodeList(folderId,queryParams.value.pageNo,queryParams.value.pageSize);
   codeList.value = data;
-  codeIndex.value = 0;
   total.value = totalCount;
   showLoading.value = false;
   activeCode.value = {};
+  
   if(data.length>0){
-    let codeId = data[0]._id;
-    handleGetCode(codeId)
+    // 检查 URL 中是否有 noteId
+    const urlNoteId = getNoteIdFromUrl();
+    let selectedIndex = 0;
+    let selectedNoteId = data[0]._id;
+    
+    // 如果 URL 有 noteId 且在当前列表中存在，选中该笔记
+    if (urlNoteId) {
+      const foundIndex = data.findIndex(note => note._id === urlNoteId);
+      if (foundIndex !== -1) {
+        selectedIndex = foundIndex;
+        selectedNoteId = urlNoteId;
+      } else {
+        // URL 中的 noteId 不存在，更新 URL 为第一个笔记
+        updateUrlNoteId(selectedNoteId);
+      }
+    } else {
+      // URL 中没有 noteId，更新 URL 为第一个笔记
+      updateUrlNoteId(selectedNoteId);
+    }
+    
+    codeIndex.value = selectedIndex;
+    handleGetCode(selectedNoteId);
+  } else {
+    // 文件夹为空时，清除 URL 中的 noteId
+    updateUrlNoteId(null);
+    codeIndex.value = 0;
   }
   // console.log('codeList.value',codeList.value);
 }
@@ -293,6 +483,22 @@ async function confirmDelCode(){
 }
 
 onMounted(async () => {
+    // 加载保存的列宽
+    const savedWidths = loadColumnWidths();
+    if (savedWidths) {
+      columnWidths.value = savedWidths;
+    }
+    
+    // 初始化移动端检测
+    checkMobileView();
+    
+    // 添加全局拖拽事件监听
+    document.addEventListener('mousemove', onResize);
+    document.addEventListener('mouseup', endResize);
+    
+    // 添加窗口大小变化监听
+    window.addEventListener('resize', onWindowResize);
+    
     let clientWidth = document.documentElement.clientWidth;
     if(clientWidth<1200){
       subfield.value = false
@@ -320,6 +526,13 @@ onMounted(async () => {
   
 })
 
+// 组件卸载时移除事件监听
+onUnmounted(() => {
+  document.removeEventListener('mousemove', onResize);
+  document.removeEventListener('mouseup', endResize);
+  window.removeEventListener('resize', onWindowResize);
+});
+
 
 watch(folderIndex, (newVal, oldVal) => { 
   // console.log(newVal)
@@ -334,7 +547,6 @@ watch(folderIndex, (newVal, oldVal) => {
 // },{immediate:true})
 
 let keyword = ref('');
-let isFolderClick = ref(false);
 async function seachCode(){
   let userId = state.userInfo?.userId;
   let {code,data,msg} = await seachCodeApi(userId,keyword.value);
@@ -475,23 +687,36 @@ function onContextMenu(item,e) {
 </script>
 
 <template>
-  <div class="parent">
-    <Folders class="folders" :folderList="folderList" :userId="state.userInfo.userId" @folderClick="onFolderClick" @getFolders="handleGetFolders"/>
-    <!-- folders 结束 -->
-    <section class="info">
-      <div class="user-info" v-if="state.loginState&&state.userInfo">
-        <a href="https://mynote.authing.cn/u" target="_blank" rel="noopener noreferrer">
-          <img class="photo" :src="state.userInfo.photo" alt="">
-        </a>
-        <p class="nickname"><a href="https://mynote.authing.cn/u" target="_blank" rel="noopener noreferrer">{{state.userInfo.nickname||'未设置'}}</a></p>
-        <a href="https://mynote.authing.cn/u" style="display: block;" target="_blank" rel="noopener noreferrer">我的资料</a>
-        <button style="margin-top:24px" @click="logout">退出</button>
-      </div>
-      <div v-else class="unlogin">
-        <button @click="login">登录</button>
-      </div>
-    </section>
-     <!-- 信息 结束 -->
+  <div class="parent" :style="{ gridTemplateColumns: isMobile ? '1fr' : `${columnWidths.foldersInfo}px 4px ${columnWidths.list}px 4px 1fr` }">
+    <!-- 第一列：Folders + Info -->
+    <div class="folders-info-container">
+      <Folders class="folders" :folderList="folderList" :userId="state.userInfo.userId" @folderClick="onFolderClick" @getFolders="handleGetFolders"/>
+      <section class="info">
+        <div class="user-info" v-if="state.loginState&&state.userInfo">
+          <a href="https://mynote.authing.cn/u" target="_blank" rel="noopener noreferrer">
+            <img class="photo" :src="state.userInfo.photo" alt="">
+          </a>
+          <p class="nickname"><a href="https://mynote.authing.cn/u" target="_blank" rel="noopener noreferrer">{{state.userInfo.nickname||'未设置'}}</a></p>
+          <a href="https://mynote.authing.cn/u" style="display: block;" target="_blank" rel="noopener noreferrer">我的资料</a>
+          <button style="margin-top:24px" @click="logout">退出</button>
+        </div>
+        <div v-else class="unlogin">
+          <button @click="login">登录</button>
+        </div>
+      </section>
+    </div>
+    
+    <!-- 第一个 resizer -->
+    <div 
+      v-if="!isMobile" 
+      class="resizer first-resizer"
+      :class="{ 'is-dragging': resizerState.isDragging && resizerState.activeResizer === 'first' }"
+      @mousedown="startResize('first', $event)"
+    >
+      <div class="resizer-handle"></div>
+    </div>
+    
+    <!-- 第二列：List -->
     <section class="list">
       <div class="top u-flex">
         <input class="input u-flex-1" v-model="keyword" @input="keywordChange" type="text" placeholder="搜索">
@@ -513,6 +738,17 @@ function onContextMenu(item,e) {
           <pagination ref="pagination" :continues="5" :pageNo="queryParams.pageNo" :pageSize="queryParams.pageSize" :total="total" @onChangePage="changePage($event)" />
       </div>
     </section>
+    
+    <!-- 第二个 resizer -->
+    <div 
+      v-if="!isMobile" 
+      class="resizer second-resizer"
+      :class="{ 'is-dragging': resizerState.isDragging && resizerState.activeResizer === 'second' }"
+      @mousedown="startResize('second', $event)"
+    >
+      <div class="resizer-handle"></div>
+    </div>
+    
     <!-- 列表 结束 -->
     <section class="code">
       <mavon-editor 
@@ -608,27 +844,87 @@ function onContextMenu(item,e) {
     color: #fff;
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: 300px 400px 1fr;
-    grid-template-rows: 360px 1fr;
+    grid-template-columns: 300px 4px 400px 4px 1fr; /* 默认值，会被内联样式覆盖 */
+    grid-template-rows: 1fr;
     grid-column-gap: 0px;
     grid-row-gap: 0px;
     background-color: var(--bg-color);
-    .info{
-      padding-top: 24px;
-      text-align: center;
-      .user-info{
-        .photo{
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
+    height: 100vh;
+    
+    .folders-info-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      
+      .folders {
+        flex: 1;
+        overflow-y: auto;
+      }
+      
+      .info {
+        height: 360px;
+        flex-shrink: 0;
+        padding-top: 24px;
+        text-align: center;
+        
+        .user-info{
+          .photo{
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+          }
         }
       }
     }
+    
+    .resizer {
+      width: 4px;
+      background-color: transparent;
+      cursor: col-resize;
+      position: relative;
+      z-index: 10;
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+      
+      &.is-dragging {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+      
+      .resizer-handle {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        
+        &::before {
+          content: '';
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          width: 2px;
+          height: 40px;
+          background-color: rgba(255, 255, 255, 0.3);
+          border-radius: 1px;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+        }
+      }
+      
+      &:hover .resizer-handle::before,
+      &.is-dragging .resizer-handle::before {
+        opacity: 1;
+      }
+    }
+    
     .list{
         position: relative;
-        grid-area: 1 / 2 / 3 / 3;
         border-left: 1px solid var(--border-color);
         border-right: 1px solid var(--border-color);
+        height: 100vh;
+        overflow-y: auto;
+        
       .top{
         border-bottom: 1px solid var(--border-color);
         .input{
@@ -699,7 +995,7 @@ function onContextMenu(item,e) {
       }
     }
     .code{
-        grid-area: 1 / 3 / 3 / 3;
+        height: 100vh;
         .mavonEditor{
           height: 100%;
         }
@@ -756,8 +1052,31 @@ function onContextMenu(item,e) {
 @media screen and (max-width: 1200px) {
   .parent{
     display: block;
+    height: auto;
+    
+    .resizer {
+      display: none;
+    }
+    
+    .folders-info-container {
+      display: block;
+      height: auto;
+      
+      .folders {
+        height: auto;
+        overflow-y: visible;
+      }
+      
+      .info {
+        display: none;
+      }
+    }
+    
     .list{
       padding-bottom: 24px;
+      height: auto;
+      overflow-y: visible;
+      
       .code-list{
         overflow: hidden;
         .code-title{
@@ -770,13 +1089,6 @@ function onContextMenu(item,e) {
         bottom: 10px;
       }
     }
-
-    .info{
-      display: none;
-    }
-
   }
-  
-  
 }
 </style>
