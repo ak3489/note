@@ -351,7 +351,12 @@ async function saveCode(){
   console.log('activeCode.value',activeCode.value);
   if(!activeCode.value._id){layer.msg('请先新增笔记,或者稍后再试!'); return}
   let {code,data,msg} = await saveCodeApi(activeCode.value);
-  layer.msg(msg)
+  layer.msg(msg);
+  // 保存成功后更新原始内容并隐藏保存按钮
+  if(code === 200) {
+    originalContent.value = activeCode.value.noteContent || '';
+    hasContentChanged.value = false;
+  }
 };
 
 async function handleGetFolders(){
@@ -417,7 +422,10 @@ function changePage($event){
 
 async function handleGetCode(codeId,isClick){
   let {code,data,msg} = await getCode(codeId,isClick);
-  activeCode.value = data
+  activeCode.value = data;
+  // 保存原始内容，用于检测变化
+  originalContent.value = data.noteContent || '';
+  hasContentChanged.value = false;
 }
 
 let codeOperateType = ref('add');
@@ -627,6 +635,10 @@ function download(item){
 let subfield = ref(true);
 let defaultOpen = ref('preview');
 
+// 内容变化状态
+let hasContentChanged = ref(false);
+let originalContent = ref('');
+
 //分享密码
 let shouwShareCode = ref(false);
 let sharePassForm = ref({notePass:'',_id:''});
@@ -634,6 +646,16 @@ async function confirmSharePass(){
   console.log('sharePassForm',sharePassForm.value);
   let {code,data,msg} = await setSharePass(sharePassForm.value);
   layer.msg(msg)
+}
+
+// 监听内容变化
+function onContentChange(value, render) {
+  // 检查内容是否真的发生了变化
+  if (activeCode.value._id && value !== originalContent.value) {
+    hasContentChanged.value = true;
+  } else {
+    hasContentChanged.value = false;
+  }
 }
 
 const _this= instance.appContext.config.globalProperties;
@@ -682,7 +704,6 @@ function onContextMenu(item,e) {
       ]
     });
   }
-     
 
 </script>
 
@@ -755,6 +776,7 @@ function onContextMenu(item,e) {
         class="mavonEditor" 
         v-model="activeCode.noteContent" 
         @save="saveCode" 
+        @change="onContentChange"
         :toolbars="toolbars" 
         :html="true" 
         codeStyle="atom-one-dark"
@@ -829,7 +851,18 @@ function onContextMenu(item,e) {
     </div>
   </div>
 
-  <button class="bottom-btn" v-if="activeCode._id" @click="share()">分享</button>
+  <!-- 右下角按钮组 -->
+  <div class="bottom-buttons" v-if="activeCode._id">
+    <button class="save-btn" v-if="hasContentChanged" @click="saveCode">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H16L21 8V19C21 20.1046 20.1046 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 21V13H7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 3V8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      保存
+    </button>
+    <button class="share-btn" @click="share()">分享</button>
+  </div>
 
   </div>
 </template>
@@ -1049,6 +1082,66 @@ function onContextMenu(item,e) {
     }
   }
 }
+
+.bottom-buttons {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 10011;
+}
+
+.save-btn, .share-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  min-width: 80px;
+  justify-content: center;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.save-btn {
+  background: #4CAF50;
+  color: white;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  
+  &:hover {
+    background: #45a049;
+    box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  }
+}
+
+.share-btn {
+  background: #2a2d53;
+  color: white;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  
+  &:hover {
+    background: #2a2d53;
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
+  }
+}
+
 @media screen and (max-width: 1200px) {
   .parent{
     display: block;
