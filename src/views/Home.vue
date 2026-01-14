@@ -803,8 +803,14 @@ function onContextMenu(item,e) {
         <div class="left" @click="backToList">
           <span style="font-size: 16px; padding: 10px;">&lt; 返回</span>
         </div>
-        <div class="right" style="padding: 10px;">
-          <button v-if="!mobileEditMode" @click="startMobileEdit" style="margin-right: 10px;">编辑</button>
+        <div class="center" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; padding: 0 5px; font-weight: bold; font-size: 16px; line-height: 50px;">
+             {{ activeCode.noteTitle }}
+        </div>
+        <div class="right" style="padding: 10px; display: flex; align-items: center;">
+          <template v-if="!mobileEditMode">
+            <button @click="share(activeCode)" style="margin-right: 10px; background-color: #2a2d53;">分享</button>
+            <button @click="startMobileEdit">编辑</button>
+          </template>
           <template v-else>
             <button @click="cancelMobileEdit" style="margin-right: 10px;">取消</button>
             <button class="save-btn-mobile" :disabled="!hasContentChanged" @click="saveCode" :style="{opacity: hasContentChanged ? 1 : 0.5}">保存</button>
