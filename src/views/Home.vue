@@ -13,7 +13,7 @@ import {
   setSharePass,
   changeCodeTitle
 } from '@/service/index';
-import { Authing } from '@authing/web';
+import { sdk } from '@/utils/authing';
 import { debounce } from '@/utils/debounce';
 import { useRouter, useRoute } from 'vue-router'
 import Pagination from '../components/pagination'
@@ -38,6 +38,29 @@ const columnWidths = ref({
 
 // 移动端检测状态
 const isMobile = ref(false);
+const mobileViewMode = ref('list'); // 'list' | 'detail'
+const mobileEditMode = ref(false);
+
+function backToList() {
+  mobileViewMode.value = 'list';
+  mobileEditMode.value = false;
+}
+
+function startMobileEdit() {
+  mobileEditMode.value = true;
+}
+
+function cancelMobileEdit() {
+  if (hasContentChanged.value) {
+    // If changed, maybe ask for confirmation? Or just revert?
+    // User requirement: "Edit status has cancel edit button, switch back to preview status"
+    // Implicitly implies discarding changes or just exiting edit mode. 
+    // Usually "Cancel" implies discarding unsaved changes.
+    activeCode.value.noteContent = originalContent.value;
+    hasContentChanged.value = false;
+  }
+  mobileEditMode.value = false;
+}
 
 // localStorage 持久化
 const COLUMN_WIDTHS_KEY = 'note-app-column-widths';
@@ -183,16 +206,7 @@ function updateUrlNoteId(noteId) {
 function getNoteIdFromUrl() {
   return route.query.noteId || null;
 }
-const sdk = new Authing({
-  // 应用的认证地址，例如：https://domain.authing.cn
-  domain: 'https://mynote.authing.cn',
-  appId: '6376fb5d2d8111d6673ed0fc',
-  // 登录回调地址，需要在控制台『应用配置 - 登录回调 URL』中指定
-  // redirectUri: 'http://127.0.0.1:5173',
-  // redirectUri: 'https://note.momen.vip',
-  redirectUri: process.env.NODE_ENV == 'development' ? 'http://127.0.0.1:5173' : 'https://note.momen.vip',
-  userPoolId:'6376fb022996db9f5c2396ba',//用户池id
-});
+
 const state = reactive({
   loginState: null,
   userInfo: {},
@@ -203,11 +217,9 @@ const state = reactive({
  */
 const getLoginState = async () => {
   const res = await sdk.getLoginState();
-  // console.log('获取用户的登录状态',res);
   state.loginState = res;
   if (!res) {
     router.push({ path: '/unlogin' })
-    // sdk.loginWithRedirect();
   }else{
     getUserInfo()
   }
@@ -228,17 +240,13 @@ const getUserInfo = async () => {
     alert("用户未登录");
     return;
   }
-  // console.log('sdk.getUserInfo',sdk.getUserInfo);
   const userInfo = await sdk.getUserInfo({
     accessToken: state.loginState.accessToken,
   });
-  // console.log('userInfo',userInfo);
   if(userInfo.statusCode===401){
     //跳转到unLogin页面
     router.push({ path: '/unlogin' })
-    // sdk.loginWithRedirect();
   }
-  // addFolderForm.value.userId=userInfo.userId;
   addCodeForm.value.userId=userInfo.userId
   state.userInfo = userInfo;
   handleGetFolders()
@@ -303,6 +311,11 @@ function codeClick(item,index){
   codeIndex.value = index;
   updateUrlNoteId(item._id);
   handleGetCode(activeCode.value._id,'click')
+  
+  if (isMobile.value) {
+    mobileViewMode.value = 'detail';
+    mobileEditMode.value = false;
+  }
 }
 
 let activeCode = ref({
@@ -510,7 +523,7 @@ onMounted(async () => {
     let clientWidth = document.documentElement.clientWidth;
     if(clientWidth<1200){
       subfield.value = false
-      defaultOpen.value = 'edit'
+      defaultOpen.value = 'preview' // Default to preview on mobile
     }
    // 校验当前 url 是否是登录回调地址
    if (sdk.isRedirectCallback()) {
@@ -582,6 +595,11 @@ function keywordChange(e){
     }
     // console.log('当前输入的内容：', keyword);
   }
+}
+
+function clearSearch() {
+  keyword.value = '';
+  handleGetCodeList();
 }
 
 let showLoading = ref(false);
@@ -710,7 +728,7 @@ function onContextMenu(item,e) {
 <template>
   <div class="parent" :style="{ gridTemplateColumns: isMobile ? '1fr' : `${columnWidths.foldersInfo}px 4px ${columnWidths.list}px 4px 1fr` }">
     <!-- 第一列：Folders + Info -->
-    <div class="folders-info-container">
+    <div class="folders-info-container" v-show="!isMobile || mobileViewMode === 'list'">
       <Folders class="folders" :folderList="folderList" :userId="state.userInfo.userId" @folderClick="onFolderClick" @getFolders="handleGetFolders"/>
       <section class="info">
         <div class="user-info" v-if="state.loginState&&state.userInfo">
@@ -738,9 +756,18 @@ function onContextMenu(item,e) {
     </div>
     
     <!-- 第二列：List -->
-    <section class="list">
+    <section class="list" v-show="!isMobile || mobileViewMode === 'list'">
       <div class="top u-flex">
-        <input class="input u-flex-1" v-model="keyword" @input="keywordChange" type="text" placeholder="搜索">
+        <div class="search-wrapper u-flex-1">
+          <input class="input" v-model="keyword" @input="keywordChange" type="text" placeholder="搜索">
+          <i v-if="keyword" class="clear-btn" @click="clearSearch">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9.16998 14.83L14.83 9.17004" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14.83 14.83L9.16998 9.17004" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </i>
+        </div>
         <span class="add" @click="addCode">+</span>
       </div>
       <ul v-if="codeList.length>0" class="code-list">
@@ -771,7 +798,19 @@ function onContextMenu(item,e) {
     </div>
     
     <!-- 列表 结束 -->
-    <section class="code">
+    <section class="code" v-show="!isMobile || mobileViewMode === 'detail'">
+      <div v-if="isMobile" class="mobile-toolbar u-flex u-row-between">
+        <div class="left" @click="backToList">
+          <span style="font-size: 16px; padding: 10px;">&lt; 返回</span>
+        </div>
+        <div class="right" style="padding: 10px;">
+          <button v-if="!mobileEditMode" @click="startMobileEdit" style="margin-right: 10px;">编辑</button>
+          <template v-else>
+            <button @click="cancelMobileEdit" style="margin-right: 10px;">取消</button>
+            <button class="save-btn-mobile" :disabled="!hasContentChanged" @click="saveCode" :style="{opacity: hasContentChanged ? 1 : 0.5}">保存</button>
+          </template>
+        </div>
+      </div>
       <mavon-editor 
         class="mavonEditor" 
         v-model="activeCode.noteContent" 
@@ -780,8 +819,10 @@ function onContextMenu(item,e) {
         :toolbars="toolbars" 
         :html="true" 
         codeStyle="atom-one-dark"
-        :subfield="subfield"
-        :defaultOpen="defaultOpen"
+        :subfield="isMobile ? false : subfield"
+        :defaultOpen="isMobile ? (mobileEditMode ? 'edit' : 'preview') : defaultOpen"
+        :toolbarsFlag="!isMobile || mobileEditMode"
+        :editable="!isMobile || mobileEditMode"
        />
     </section>
 
@@ -852,7 +893,7 @@ function onContextMenu(item,e) {
   </div>
 
   <!-- 右下角按钮组 -->
-  <div class="bottom-buttons" v-if="activeCode._id">
+  <div class="bottom-buttons" v-if="activeCode._id && !isMobile">
     <button class="save-btn" v-if="hasContentChanged" @click="saveCode">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H16L21 8V19C21 20.1046 20.1046 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -960,17 +1001,45 @@ function onContextMenu(item,e) {
         
       .top{
         border-bottom: 1px solid var(--border-color);
-        .input{
-          background: transparent;
-          outline: 0;
-          border: 0;
-          box-shadow: none;
-          height: 45px;
-          padding: 0;
+        .search-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
           margin-left: 10px;
-          color: #fff;
-          font-size: 16px;
+          
+          .input{
+            background: transparent;
+            outline: 0;
+            border: 0;
+            box-shadow: none;
+            height: 45px;
+            padding: 0;
+            padding-right: 30px;
+            color: #fff;
+            font-size: 16px;
+            width: 100%;
+          }
+
+          .clear-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #65698b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            transition: color 0.3s;
+            
+            &:hover {
+              color: #fff;
+            }
+          }
         }
+        
         .add{
           width: 45px;
           height: 45px;
@@ -1029,8 +1098,40 @@ function onContextMenu(item,e) {
     }
     .code{
         height: 100vh;
+        display: flex;
+        flex-direction: column;
+
+        .mobile-toolbar {
+          height: 50px;
+          flex-shrink: 0;
+          background-color: #1e1e1e; /* Adjust to match theme if needed */
+          border-bottom: 1px solid #333;
+          
+          .left {
+            cursor: pointer;
+            &:hover { opacity: 0.8; }
+          }
+          
+          button {
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            
+            &:disabled {
+              background-color: #666;
+              cursor: not-allowed;
+            }
+          }
+        }
+
         .mavonEditor{
-          height: 100%;
+          flex: 1;
+          height: 0; 
+          width: 100%;
         }
         :deep(.hljs){
           white-space: break-spaces;

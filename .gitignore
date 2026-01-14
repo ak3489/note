@@ -15,6 +15,10 @@ dist-ssr
 
 .kiro/
 
+# Local env files (do not commit secrets)
+.env
+.env.*.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
