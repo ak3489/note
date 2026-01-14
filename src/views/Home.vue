@@ -1289,6 +1289,13 @@ function onContextMenu(item,e) {
         bottom: 10px;
       }
     }
+
+    // 确保编辑器区域占满屏幕
+    .code {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+    }
   }
 }
 </style>
