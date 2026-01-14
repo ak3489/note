@@ -200,7 +200,7 @@ onMounted(() => {});
         }
       }
       &.active {
-        background-color: #484c85;
+        background-color: #363748;
       }
     }
   }

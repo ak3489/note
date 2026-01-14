@@ -1088,7 +1088,7 @@ function onContextMenu(item,e) {
               }
             }
             &.active{
-              background-color: #363748;
+              background-color: #5e4cea;
             }
           }
       }
