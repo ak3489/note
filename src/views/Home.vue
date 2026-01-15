@@ -729,6 +729,11 @@ function onContextMenu(item,e) {
   <div class="parent" :style="{ gridTemplateColumns: isMobile ? '1fr' : `${columnWidths.foldersInfo}px 4px ${columnWidths.list}px 4px 1fr` }">
     <!-- 第一列：Folders + Info -->
     <div class="folders-info-container" v-show="!isMobile || mobileViewMode === 'list'">
+      <div v-if="isMobile && state.loginState && state.userInfo" class="mobile-user-header">
+          <a href="https://mynote.authing.cn/u" target="_blank" rel="noopener noreferrer">
+            <img class="photo" :src="state.userInfo.photo" alt="">
+          </a>
+      </div>
       <Folders class="folders" :folderList="folderList" :userId="state.userInfo.userId" @folderClick="onFolderClick" @getFolders="handleGetFolders"/>
       <section class="info">
         <div class="user-info" v-if="state.loginState&&state.userInfo">
@@ -1262,6 +1267,20 @@ function onContextMenu(item,e) {
       display: block;
       height: auto;
       
+      .mobile-user-header {
+        padding: 10px;
+        text-align: center;
+        border-bottom: 1px solid var(--border-color);
+        
+        .photo {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          border: 2px solid #fff;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+      }
+
       .folders {
         height: auto;
         overflow-y: visible;
@@ -1293,8 +1312,44 @@ function onContextMenu(item,e) {
     // 确保编辑器区域占满屏幕
     .code {
       width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
       height: 100vh;
       height: 100dvh;
+      
+      .mavonEditor {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      :deep(.v-note-wrapper) {
+        min-width: 0 !important;
+        width: 100% !important;
+        box-shadow: none !important;
+
+        /* Fix toolbar width on mobile */
+        .v-note-op {
+          flex-wrap: wrap !important;
+          height: auto !important;
+          
+          .v-left-item, .v-right-item {
+            flex-wrap: wrap !important;
+            max-width: 100% !important;
+          }
+        }
+        
+        /* Prevent zoom on iOS when focusing textarea (font-size < 16px causes zoom) */
+        .auto-textarea-input, .auto-textarea-block {
+          font-size: 16px !important; 
+        }
+
+        /* Ensure panels don't overflow */
+        .v-note-panel {
+          width: 100% !important;
+          min-width: 0 !important;
+          overflow-x: hidden !important;
+        }
+      }
     }
   }
 }
