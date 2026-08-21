@@ -1,11 +1,19 @@
 <script setup>
-import { ref, onMounted, getCurrentInstance } from "vue";
+import { ref, onMounted, getCurrentInstance, watch } from "vue";
 import { addFolderApi, editFolderApi,delFolderApi } from "@/service/index";
 const props = defineProps(["folderList", "userId"]);
 const emit = defineEmits(["folderClick", "getFolders"]);
 const instance = getCurrentInstance();
 const _this = instance.appContext.config.globalProperties;
 let folderIndex = ref(0);
+
+// 监听文件夹列表变化，确保选中的索引有效
+watch(() => props.folderList, (newList) => {
+  if (newList.length > 0 && folderIndex.value >= newList.length) {
+    folderIndex.value = 0; // 重置到第一个文件夹
+    emit("folderClick", 0); // 通知父组件
+  }
+}, { immediate: true });
 function folderClick(item, index) {
   //   queryParams.value.pageNo = 1;
   folderIndex.value = index;

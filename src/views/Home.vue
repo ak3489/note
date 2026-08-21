@@ -556,8 +556,9 @@ onUnmounted(() => {
 
 
 watch(folderIndex, (newVal, oldVal) => { 
-  // console.log(newVal)
-  // codeIndex.value = 0;
+  // 切换文件夹时重置笔记选择
+  codeIndex.value = 0;
+  activeCode.value = {};
   handleGetCodeList()
 })
 

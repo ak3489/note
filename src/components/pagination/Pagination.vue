@@ -86,6 +86,11 @@
     created(){
       this.currentPage = this.pageNo
     },
+    watch: {
+      pageNo(newVal) {
+        this.currentPage = newVal;
+      }
+    },
     computed: {
         totalPage() {
             const { total, pageSize } = this;
